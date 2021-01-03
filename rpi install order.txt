@@ -1,0 +1,61 @@
+1. Raspbian update:
+sudo apt update
+sudo apt full-upgrade
+
+1.5. remote desktop install:
+sudo apt-get remove xrdp vnc4server tightvncserver
+#sudo apt-get install tightvncserver
+sudo apt-get install xrdp
+
+2. Python 3.8:
+pre-reqs:
+sudo apt-get install -y build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev libgdbm-dev libsqlite3-dev libssl-dev libbz2-dev libexpat1-dev liblzma-dev zlib1g-dev libffi-dev tar wget vim
+
+download python 3.8:
+wget https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz
+
+install python 3.8:
+sudo tar zxf Python-3.8.0.tgz
+cd Python-3.8.0
+sudo ./configure --enable-optimizations
+sudo make -j 4
+sudo make altinstall
+
+check version:
+python3.8 -V
+
+make 3.8 default:
+echo "alias python=/usr/local/bin/python3.8" >> ~/.bashrc
+source ~/.bashrc
+
+check python version:
+python -V
+Python 3.8.0
+
+install pyside2:
+sudo apt-get install python3-pyside2.qt3dcore python3-pyside2.qt3dinput python3-pyside2.qt3dlogic python3-pyside2.qt3drender python3-pyside2.qtcharts python3-pyside2.qtconcurrent python3-pyside2.qtcore python3-pyside2.qtgui python3-pyside2.qthelp python3-pyside2.qtlocation python3-pyside2.qtmultimedia python3-pyside2.qtmultimediawidgets python3-pyside2.qtnetwork python3-pyside2.qtopengl python3-pyside2.qtpositioning python3-pyside2.qtprintsupport python3-pyside2.qtqml python3-pyside2.qtquick python3-pyside2.qtquickwidgets python3-pyside2.qtscript python3-pyside2.qtscripttools python3-pyside2.qtsensors python3-pyside2.qtsql python3-pyside2.qtsvg python3-pyside2.qttest python3-pyside2.qttexttospeech python3-pyside2.qtuitools python3-pyside2.qtwebchannel python3-pyside2.qtwebsockets python3-pyside2.qtwidgets python3-pyside2.qtx11extras python3-pyside2.qtxml python3-pyside2.qtxmlpatterns python3-pyside2uic
+
+install python-osc:
+sudo pip3 install python-osc
+
+install argparse:
+sudo pip install argparse
+
+install PyBluez:
+#sudo apt-get install libbluetooth-dev
+#sudo apt-get install python-dev
+#sudo pip install PyBluez
+sudo apt-get install bluetooth libbluetooth-dev
+sudo python3 -m pip install pybluez
+
+setup auto-run:
+sudo nano /etc/profile
+at the end of the script write:
+sudo python3 /home/pi/TouchDesk.py &
+
+xscreensaver
+
+
+install bluetooth
+
+
