@@ -1,0 +1,17 @@
+This link offers an archieved disk image with all pre-requisites and the script installed.
+
+https://www.mediafire.com/file/8mhjp8ptxt5bsdb/RPI_V1.1.7z/file
+
+Once downloaded follow the steps below to use:
+1. Unzip and use Win32 Disk Imager to create a disk image on a 16gb SD card. Download Wind32 Disk Imager here: https://sourceforge.net/projects/win32diskimager/
+NOTE: This has only be tested on a Raspberry Pi 4B 2gb with a 16gb SD Card. Using something else may result in technical issues, but is untested.
+
+2. Once the disk image is written to the SD card, simply insert into the RPi and it should boot without issue.
+
+3. Connect a bluetooth device such as your phone or a tablet. Bluetooth is headless, so it shouldn't require any inputs from a user to connect.
+The RPi should be called "raspberrypi" in your devices' bluetooth list.
+
+4. Open terminal and type "python3 TouchDesk1.1.py" and press enter
+
+5. The app should start up, the hard-coded password is "1234". This can be changed or disabled in the script. It will automatically log out after 15 minutes
+of inactivity.
