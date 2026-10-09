@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen
+from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
@@ -56,6 +56,18 @@ def paint_icon(p: QPainter, kind: str, r: QRectF, color: QColor) -> None:
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(color)
 
+    if kind == "note":  # a pair of quavers, for "no artwork"
+        p.drawEllipse(QRectF(pt(0.18, 0.62), pt(0.40, 0.80)))
+        p.drawEllipse(QRectF(pt(0.56, 0.54), pt(0.78, 0.72)))
+        p.drawRect(QRectF(pt(0.34, 0.24), pt(0.40, 0.72)))
+        p.drawRect(QRectF(pt(0.72, 0.16), pt(0.78, 0.64)))
+        beam = QPainterPath(pt(0.34, 0.24))
+        for fx, fy in ((0.78, 0.16), (0.78, 0.26), (0.34, 0.34)):
+            beam.lineTo(pt(fx, fy))
+        beam.closeSubpath()
+        p.drawPath(beam)
+        return
+
     def tri(x0, flip=False):
         path = QPainterPath()
         if flip:
@@ -104,6 +116,44 @@ class IconButton(QPushButton):
         color = QColor("#ffffff" if self.isEnabled() else "#555555")
         m = self.width() * 0.25
         paint_icon(p, self.kind, QRectF(m, m, self.width() - 2 * m, self.height() - 2 * m), color)
+
+
+class ArtView(QWidget):
+    """Album artwork, or a music-note placeholder when there isn't any."""
+
+    def __init__(self, size: int = 110, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(size, size)
+        self._path = ""
+        self._pixmap: QPixmap | None = None
+
+    def set_image(self, path: str) -> None:
+        if path == self._path:
+            return
+        self._path = path
+        pm = QPixmap(path) if path else QPixmap()
+        self._pixmap = None if pm.isNull() else pm
+        self.update()
+
+    def has_image(self) -> bool:
+        return self._pixmap is not None
+
+    def paintEvent(self, e):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        r = QRectF(self.rect())
+        clip = QPainterPath()
+        clip.addRoundedRect(r, 8, 8)
+        p.setClipPath(clip)
+        if self._pixmap:
+            pm = self._pixmap.scaled(self.size(), Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                     Qt.TransformationMode.SmoothTransformation)
+            p.drawPixmap(int((self.width() - pm.width()) / 2), int((self.height() - pm.height()) / 2), pm)
+        else:
+            p.fillRect(r, QColor("#16344f"))
+            m = r.width() * 0.22
+            paint_icon(p, "note", r.adjusted(m, m, -m, -m), QColor("#4f7392"))
 
 
 class IconLabel(QWidget):

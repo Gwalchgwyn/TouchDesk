@@ -49,6 +49,8 @@ Everything here has been tested in software against a stand-in desk. This list c
 - [ ] Pi appears as "Blue Room" (then "Green Room") on a phone and pairs with no PIN
 - [ ] Music plays out of the 3.5 mm jack
 - [ ] Track/artist show on screen; play/pause/skip work
+- [ ] Album artwork: try an Android phone and an iPhone, with Spotify and the built-in music app. Note which show artwork (placeholder note otherwise)
+- [ ] Artwork changes when the track changes
 - [ ] Start TouchDesk with **no** phone connected: it starts normally (the 1.x crash)
 - [ ] Phone walks out of range and back: no crash
 

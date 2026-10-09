@@ -20,6 +20,7 @@ Rebuilt from TouchDesk 1.1. Same look, new internals.
 - Settings file with validation and on-screen error reporting.
 - Configurable channels: choose which four desk channels a screen controls.
 - Installer room presets: Blue Room (channels 1–4) and Green Room (5–8), each with its own Bluetooth name.
+- Album artwork from the phone over Bluetooth (AVRCP 1.6 cover art via BlueZ/obexd; experimental, phone-dependent).
 - Installer settings screen behind a separate PIN.
 - PIN masking and lockout; Mute All available while locked.
 - Desk channel names, dB readout option, configurable maximum level.

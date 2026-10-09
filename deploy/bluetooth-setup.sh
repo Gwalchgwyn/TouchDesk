@@ -14,7 +14,20 @@ NAME="${1:-TouchDesk}"
 say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 
 say "Installing Bluetooth tools"
-sudo apt-get install -y -q bluez bluez-tools
+sudo apt-get install -y -q bluez bluez-tools bluez-obexd
+
+say "Turning on BlueZ experimental features (needed for album artwork)"
+CONF=/etc/bluetooth/main.conf
+if [ -f "$CONF" ]; then
+  if grep -qE '^[#[:space:]]*Experimental[[:space:]]*=' "$CONF"; then
+    sudo sed -i -E 's/^[#[:space:]]*Experimental[[:space:]]*=.*/Experimental = true/' "$CONF"
+  else
+    sudo sed -i '/^\[General\]/a Experimental = true' "$CONF"
+  fi
+  sudo systemctl restart bluetooth
+else
+  echo "No $CONF found - album artwork will stay off."
+fi
 
 say "Creating a background service that accepts pairing automatically"
 sudo tee /etc/systemd/system/touchdesk-bt-agent.service >/dev/null <<EOF

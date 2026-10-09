@@ -29,6 +29,24 @@ class DemoBT(BluetoothBackend):
     track = {"Title": "Calon Lân", "Artist": "Côr Meibion", "Album": "Hymns & Arias"}
 
 
+def make_demo_art(path):
+    """A stand-in album cover (gradient + shapes), since we can't ship real artwork."""
+    from PySide6.QtGui import QColor, QImage, QLinearGradient, QPainter
+
+    img = QImage(200, 200, QImage.Format.Format_RGB32)
+    p = QPainter(img)
+    g = QLinearGradient(0, 0, 200, 200)
+    g.setColorAt(0, QColor("#c0392b"))
+    g.setColorAt(1, QColor("#1b2a49"))
+    p.fillRect(img.rect(), g)
+    p.setBrush(QColor(255, 255, 255, 60))
+    p.setPen(QColor(0, 0, 0, 0))
+    p.drawEllipse(40, 40, 120, 120)
+    p.end()
+    img.save(str(path))
+    return str(path)
+
+
 def shoot(win, out, name, w=800, h=480):
     win.resize(w, h)
     pump(0.15)
@@ -40,6 +58,7 @@ def main(out):
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     QApplication.instance() or QApplication([])
+    DemoBT.art_path = make_demo_art(out / "_demo_art.png")
     desk = FakeDesk(port=0, host="127.0.0.1").start()
     desk.state["/ch/02/mix/fader"] = 0.45
     desk.state["/ch/03/mix/on"] = 0
@@ -74,11 +93,14 @@ def main(out):
     shoot(win, out, "4b-admin-pin")
     s.stop(); win.close()
 
+    class NoArtBT(DemoBT):
+        art_path = ""
+
     win, s = make({"level_display": "db", "display": {"title": "Green Room"},
                    "channels": [{"label": f"#{i}", "type": "ch", "number": 4 + i,
                                  **({"icon": "bluetooth"} if i == 4 else {})} for i in range(1, 5)],
-                   "security": {"pin_enabled": False}})
-    shoot(win, out, "3-green-room-db")
+                   "security": {"pin_enabled": False}}, bt=NoArtBT())
+    shoot(win, out, "3-green-room-db-no-artwork")
     s.stop(); win.close()
 
     desk.silent = True

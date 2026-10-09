@@ -14,6 +14,7 @@ TouchDesk 1.x ran 24/7 at a community venue from September 2020. Version 2 keeps
 - **Finds the desk by itself.** No more hard-coded IP address. A fixed address still works if you prefer.
 - **Copes with the desk going away.** If the network drops, the screen says so and reconnects automatically.
 - **Bluetooth can't stop it starting.** 1.x crashed at start-up if no phone was connected; now the player just says "No device connected".
+- **Album artwork** in the Bluetooth player, sent by the phone itself (no internet needed). Not every phone or app sends it; when there's none, a music-note placeholder shows.
 - **A settings file instead of editing code.** Number of channels, which desk channel each controls, names, PINs, timeouts, maximum level.
 - **Installer settings on the touchscreen,** behind a separate installer PIN: find desk, PIN lock on/off, auto-lock time, change PINs, 0–10 or dB readouts, names from the desk.
 - **Better PIN lock.** Digits are hidden as you type, and too many wrong guesses pause the keypad for a minute.
@@ -100,6 +101,7 @@ From there you can find and pick the desk, switch the PIN lock and auto-lock, ch
 - **Logs:** `~/.local/state/touchdesk/touchdesk.log`
 - **Run with full detail:** `~/.local/bin/touchdesk --windowed --verbose`
 - **No Bluetooth audio:** `systemctl status touchdesk-bt-agent`; check the desktop's audio output is the AV jack.
+- **No album artwork:** it needs the phone to support Bluetooth cover art (AVRCP 1.6) and BlueZ's experimental features on (`grep Experimental /etc/bluetooth/main.conf` should say `true`). Many phones and apps simply don't send it.
 
 ## Adding another make of desk
 

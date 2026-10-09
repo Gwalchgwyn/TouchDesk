@@ -98,7 +98,8 @@ def stylesheet(s: float) -> str:
     #BtHeader {{ font-size: {px(22)}; font-weight: bold; }}
     #BtDevice {{ color: {TEXT_DIM}; font-size: {px(15)}; }}
     #BtField {{ color: {TEXT_DIM}; font-size: {px(16)}; }}
-    #BtValue {{ font-size: {px(18)}; }}
+    #BtTitle {{ font-size: {px(19)}; font-weight: bold; }}
+    #BtValue {{ font-size: {px(16)}; }}
     #BtButton {{
         background: {KEY}; border: 1px solid black; border-radius: {px(30)};
         min-width: {px(60)}; max-width: {px(60)}; min-height: {px(60)}; max-height: {px(60)};

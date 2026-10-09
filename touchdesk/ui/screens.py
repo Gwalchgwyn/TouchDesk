@@ -21,7 +21,7 @@ from touchdesk import __version__
 from touchdesk.bluetooth import BluetoothBackend
 from touchdesk.config import Config
 from touchdesk.session import DeskSession
-from touchdesk.ui.widgets import ChannelStrip, IconButton, PinPad
+from touchdesk.ui.widgets import ArtView, ChannelStrip, IconButton, PinPad
 
 
 # ------------------------------------------------------------------ lock
@@ -93,7 +93,7 @@ class LockScreen(QWidget):
 class BluetoothPanel(QWidget):
     touched = Signal()
 
-    def __init__(self, backend: BluetoothBackend, parent=None):
+    def __init__(self, backend: BluetoothBackend, scale: float = 1.0, parent=None):
         super().__init__(parent)
         self.bt = backend
         header = QLabel("Bluetooth Player")
@@ -104,20 +104,21 @@ class BluetoothPanel(QWidget):
         self.device.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.device.setWordWrap(True)
 
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(12)
+        self.art = ArtView(round(110 * scale))
+        info = QVBoxLayout()
+        info.setSpacing(2)
         self.values = {}
-        for row, key in enumerate(("Title", "Artist", "Album")):
-            k = QLabel({"Title": "Track:"}.get(key, key + ":"))
-            k.setObjectName("BtField")
-            k.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        for key, name in (("Title", "BtTitle"), ("Artist", "BtValue"), ("Album", "BtField")):
             v = QLabel("")
-            v.setObjectName("BtValue")
+            v.setObjectName(name)
             v.setMinimumWidth(10)
-            grid.addWidget(k, row, 0)
-            grid.addWidget(v, row, 1)
+            info.addWidget(v)
             self.values[key] = v
-        grid.setColumnStretch(1, 1)
+        info.addStretch(1)
+        now_playing = QHBoxLayout()
+        now_playing.setSpacing(14)
+        now_playing.addWidget(self.art, 0, Qt.AlignmentFlag.AlignTop)
+        now_playing.addLayout(info, 1)
 
         self.prev = IconButton("prev")
         self.playpause = IconButton("play")
@@ -143,8 +144,8 @@ class BluetoothPanel(QWidget):
         lay.addWidget(header)
         lay.addWidget(self.device)
         lay.addSpacing(14)
-        lay.addLayout(grid)
-        lay.addSpacing(18)
+        lay.addLayout(now_playing)
+        lay.addSpacing(16)
         lay.addLayout(buttons)
         lay.addStretch(1)
 
@@ -159,8 +160,11 @@ class BluetoothPanel(QWidget):
             self.device.setText(f"Connected: {bt.device_name}")
         else:
             self.device.setText("No device connected.\nPair your phone with this unit to play music.")
+        self.art.set_image(bt.art_path if bt.has_player else "")
         for key, lbl in self.values.items():
             text = (bt.track or {}).get(key, "") if bt.has_player else ""
+            if key == "Title" and bt.has_player and not text:
+                text = "Nothing playing"
             w = max(lbl.width(), 120)
             lbl.setText(lbl.fontMetrics().elidedText(text, Qt.TextElideMode.ElideRight, w))
             lbl.setToolTip(text)

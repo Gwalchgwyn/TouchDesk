@@ -68,3 +68,80 @@ def test_bluetooth_service_down_is_survivable(qapp, monkeypatch):
     state["objects"] = {"/p": {"org.bluez.MediaPlayer1": {"Status": "paused", "Track": {}}}}
     bt._poll()
     assert bt.has_player
+
+
+# ---------------------------------------------------------------- artwork
+def make_obex_dbus(log, fail_session=False):
+    """Pretend obexd: sessions, thumbnails written to disk, transfer status."""
+
+    class Iface:
+        def __init__(self, obj, iface):
+            self.obj, self.iface = obj, iface
+
+        def CreateSession(self, address, opts, timeout=None):
+            log.append(("CreateSession", address, opts["Target"], int(opts["PSM"])))
+            if fail_session:
+                raise RuntimeError("org.bluez.obex.Error.Failed")
+            return "/org/bluez/obex/client/session1"
+
+        def RemoveSession(self, path, timeout=None):
+            log.append(("RemoveSession", path))
+
+        def GetThumbnail(self, target, handle, timeout=None):
+            log.append(("GetThumbnail", handle))
+            with open(target, "wb") as f:
+                f.write(b"\xff\xd8 fake jpeg")
+            return "/org/bluez/obex/client/session1/transfer1", {}
+
+        def Get(self, iface, prop, timeout=None):
+            return "complete"
+
+    class Bus:
+        def __init__(self, *a, **k):
+            pass
+
+        def get_object(self, service, path):
+            return path
+
+    return types.SimpleNamespace(SessionBus=Bus, Interface=Iface, UInt16=int)
+
+
+def wait_for(cond, timeout=3):
+    import time
+
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        if cond():
+            return True
+        time.sleep(0.02)
+    return cond()
+
+
+def test_cover_art_fetched_per_track(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(bluetooth, "dbus", make_obex_dbus(calls))
+    art = bluetooth.CoverArt(tmp_path)
+    art.update(("AA:BB", 4101, ""))  # player offers artwork; no image yet
+    assert wait_for(lambda: art._session and not art._busy)
+    assert calls[0] == ("CreateSession", "AA:BB", "bip-avrcp", 4101)
+    art.update(("AA:BB", 4101, "1000001"))
+    assert wait_for(lambda: art.path.endswith("1000001.jpg"))
+    art.update(("AA:BB", 4101, "1000001"))  # same track: no second download
+    assert [c[0] for c in calls].count("GetThumbnail") == 1
+    art.update(("AA:BB", 4101, ""))  # track without artwork
+    assert art.path == ""
+    assert wait_for(lambda: not art._busy)
+    art.update(None)  # phone gone
+    assert wait_for(lambda: ("RemoveSession", "/org/bluez/obex/client/session1") in calls)
+
+
+def test_phone_without_artwork_support_is_left_alone(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(bluetooth, "dbus", make_obex_dbus(calls, fail_session=True))
+    art = bluetooth.CoverArt(tmp_path)
+    art.update(("AA:BB", 4101, ""))
+    assert wait_for(lambda: not art._busy)
+    art.update(("AA:BB", 4101, "123"))
+    art.update(("AA:BB", 4101, "123"))
+    assert [c[0] for c in calls] == ["CreateSession"], "don't keep retrying a phone that said no"
+    assert art.path == ""
