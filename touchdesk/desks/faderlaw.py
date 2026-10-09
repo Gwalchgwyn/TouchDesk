@@ -52,6 +52,5 @@ def db_to_float(db: float) -> float:
 def format_db(db: float) -> str:
     if math.isinf(db) or db <= MIN_DB:
         return "-∞"
-    if abs(db) < 0.05:
-        return "0 dB"
-    return f"{db:+.1f} dB" if abs(db) < 10 else f"{db:+.0f} dB"
+    whole = round(db)
+    return "0 dB" if whole == 0 else f"{whole:+d} dB"
