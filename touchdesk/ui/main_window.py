@@ -134,6 +134,8 @@ class MainWindow(QWidget):
     def show_page(self, page: int) -> None:
         self.stack.setCurrentIndex(page)
         unlocked = page in (self.MIXER, self.BLUETOOTH)
+        if page == self.LOCK and not self.config.security["pin_enabled"]:
+            unlocked = True  # reached by long-press; let them tap back to the mixer
         for b in self.tabs.buttons():
             b.setEnabled(unlocked)
         # Mute All stays usable even when locked: anyone can silence feedback.

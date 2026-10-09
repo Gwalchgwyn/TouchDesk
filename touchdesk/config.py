@@ -51,6 +51,8 @@ DEFAULTS: dict = {
         "enabled": True,
     },
     "display": {
+        # Shown in the top bar, e.g. the venue's name. Empty = "TouchDesk".
+        "title": "",
         "fullscreen": True,
         "hide_cursor": True,
     },

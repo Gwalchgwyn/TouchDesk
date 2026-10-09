@@ -218,3 +218,14 @@ def test_many_channels_move_player_to_tab(make_window):
     chans = [{"type": "ch", "number": n} for n in range(1, 9)]
     w, s = make_window({"channels": chans}, bt=BluetoothBackend())
     assert w.bt_tab and len(w.mixer.strips) == 8
+
+
+def test_long_press_reaches_installer_pin_and_can_go_back(make_window):
+    w, s = make_window({"security": {"pin_enabled": False}})
+    w._admin_requested()
+    assert w.stack.currentIndex() == w.LOCK
+    assert w.tab_mixer.isEnabled(), "must be able to back out without a PIN"
+    type_pin(w, "000000")
+    assert w.stack.currentIndex() == w.ADMIN
+    w.admin.closed.emit()
+    assert w.stack.currentIndex() == w.MIXER

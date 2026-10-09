@@ -1,23 +1,117 @@
 # TouchDesk
-Touch-screen based OSC enabled digital sound desk communication software for use on Raspberry Pi.
 
-TouchDesk is the working name for prototype software that allows remote use of a digital sound desk from a Raspberry Pi using a touchscreen.
-It allows a sound technician or installer to set up a sound desk as they would normally, but leave the end-user with a simple, clean, and limited interface
-on what settings can be used or adjusted, thus preventing unintentional damage and limits confusion to those with little experience or knowledge of sound equipment.
-A technician may use some of the advanced features of a sound desk such as parametric or graphical EQs, compressors, expanders, duckers, gain pots, or any other 
-feature, and then present just a mute button and fader in a clean, low-profile, wall-mountable, touchscreen up to the max distance of a PoE enabled Cat5/6 cable. 
-This can also be done over a wireless network if the Raspberry Pi is powered locally. It currently also provides a rudimentary interface for Bluetooth connectivity,
-allowing the RPi to become a Bluetooth audio sink and outputting that audio to its 3.5mm stereo jack. This gives the installer the option of transferring audio into
-the same sound desk to be manipulated by the TouchDesk software.
+A simple, locked-down touchscreen remote for digital sound desks, running on a Raspberry Pi.
 
-TouchDesk uses Python 3 as its main language, with PySide2 for its GUI. It communicates with sound equipment using OSC language, and a Python extension called "Python-osc". Documentation for this can be found here: https://python-osc.readthedocs.io/en/latest/ The script also uses BlueAlsa and dbus for controlling and using the RPis bluetooth features within Python. The code found on the following website was used and adapted for use in this script: https://scribles.net/controlling-bluetooth-audio-on-raspberry-pi/. I would also like to thank the user Eyllanesc on StackOverflow for their help with integrating this into TouchDesk: https://stackoverflow.com/questions/64615035/integrating-two-python-scripts-into-one/64656528#64656528
+An installer sets the sound desk up properly (EQ, compression, gain and so on) and leaves the venue with a small wall-mounted screen showing just what they need: a fader and an ON/OFF button for each channel, a Mute All button, and Bluetooth music controls. It talks to the desk over the network using OSC, and the Pi can be powered over PoE, so the screen can sit anywhere a network cable reaches.
 
-The purpose of writing this script was to allow sound technicians and installers a cheap and viable way to provide a simple interface for end-users to operate a sound system in, say for instance, a school or recreation center without the need of a sound technician present or greater knowledge of sound control devices such as mixing desks. Many local community centers rely heavily on having a working sound system for the various community events that may occur in them, and sadly they are often working on a very limited budget. This software offers a cheap and effective solution to the problem of having a bulky and often confusing system in place for those without prior knowledge of sound systems. Used in conjunction with a Raspberry Pi, a touchscreen can be wall mounted and controls limited to just a fader and mute button. The device can be powered over PoE, so no expensive electrical work is needed. The limited interface can prevent unintentional damage (by restricting use of gain pots and compressors), and its locking ability can prevent use from unauthorised people.
+![TouchDesk installed in a community hall](docs/photos/IMG_20200928_194334.jpg)
 
-I am not a programmer. This project started for me when the coronavirus lockdown began in March 2020. With time on my hands i watched a few YouTube videos on coding in Python, did a little research, bought a book on QT for Python and gave it a go. Through many hours of trial, error, and late night googling, i have created this script. It has been deployed on a site since September 2020 (It is Jan 4th 2021 at time of writing) and have had no problems reported so far apart from minor aesthetic criticisms (the password lock time-out was increased from 2 minutes to 15). The Raspberry Pis installed have been running 24/7 since installation without any reported issue. Users have said that its far easier for them to use and understand. Its smaller profile has also allowed them extra physical space to conduct their activities.
+## What's new in version 2
 
-There are a number of things i would like to change and upgrade with the script, however my inexperience with coding and lack of knowledge in the field is now reaching a point where i feel i need help from people who know more than i and are interested in developing this further. My intention with this software is to have it available for free forever, i do not want anyone selling or profiting directly from the script, however it is intended for installers to use as part of a sale of a sound system installation.
+TouchDesk 1.x ran 24/7 at a community venue from September 2020. Version 2 keeps the same screen and colours but rebuilds the inside:
 
-Currently it only has commands for use with the Behringer X-Air range of desks, and only tested with the Behringer XR12. However, as it uses OSC language, it can in theory be used with ANY desk that utilises OSC language. This will require input from many people who can provide a list of OSC commands for a particular brand and make of sound desk. To make further progress with TouchDesk, an "admin" interface will be required, so that an installer or technician can select the brand and make of desk being used in the installation. Once selected, the OSC commands of that particular desk can be called from a dictionary and used as a variable in the script to send the correct OSC command structure to the sound desk. An "admin" interface can also allow the installer to change or disable password requirements of the script. There is also potential for interface customisation - currently it only provides 4 channels within its interface, but these channels can easily be created dynamically through the use of dictionaries. Adding other features such as EQ controls or compressors can also be done. There is essentially no reason why the manufacturers tablet apps can't be recreated or reimagined and customised through this method.
+- **Two-way sync.** The screen now shows what the desk is really doing. Changes made on the desk, in X AIR Edit or on a tablet appear on the touchscreen straight away, and everything is re-read whenever the desk reconnects or reboots.
+- **Finds the desk by itself.** No more hard-coded IP address. A fixed address still works if you prefer.
+- **Copes with the desk going away.** If the network drops, the screen says so and reconnects automatically.
+- **Bluetooth can't stop it starting.** 1.x crashed at start-up if no phone was connected; now the player just says "No device connected".
+- **A settings file instead of editing code.** Number of channels, which desk channel each controls, names, PINs, timeouts, maximum level.
+- **Installer settings on the touchscreen,** behind a separate installer PIN: find desk, PIN lock on/off, auto-lock time, change PINs, 0–10 or dB readouts, names from the desk.
+- **Better PIN lock.** Digits are hidden as you type, and too many wrong guesses pause the keypad for a minute.
+- **Mute All works even when the screen is locked,** so anyone can kill feedback.
+- **Any number of channels** (up to 16). With more than 4, the Bluetooth player moves to its own tab.
+- **Desk profiles.** Behringer X Air (XR12/XR16/XR18) and Midas MR. Behringer X32 / Midas M32 is included but untested.
+- **One-command install** on a fresh Raspberry Pi OS, with auto-start and automatic restart if anything goes wrong.
+- **Modern Qt (PySide6)** and an automated test suite.
 
-If anyone with any experience in coding is interested in contributing to this project, please let me know. I am contactable through my email: info@reedaudiovisual.com
+## Hardware
+
+- Raspberry Pi 4 (2 GB is plenty) running the current **64-bit Raspberry Pi OS with desktop**.
+- A touchscreen. The layout is designed for 800×480 and scales to larger screens.
+- A network connection to the desk (wired recommended; PoE HAT optional).
+- Optional: a 3.5 mm jack to the desk for Bluetooth audio.
+
+## Installing
+
+On the Pi, in a terminal:
+
+```bash
+git clone https://github.com/Gwalchgwyn/TouchDesk.git
+cd TouchDesk
+bash deploy/install.sh --bluetooth     # leave off --bluetooth if you don't need it
+```
+
+The installer asks for a user PIN and an installer PIN, sets everything up, and makes TouchDesk start full screen whenever the Pi boots. Run it again any time to upgrade; your settings are kept.
+
+To try it in a window first: `~/.local/bin/touchdesk --windowed`
+
+To remove it: `bash deploy/uninstall.sh`
+
+## Settings
+
+Settings live in `~/.config/touchdesk/config.json`. The common ones can be changed on the touchscreen (see below). Everything else is in the file:
+
+| Setting | What it does | Default |
+|---|---|---|
+| `desk.model` | `xair` (X Air / Midas MR) or `x32` (X32 / M32) | `xair` |
+| `desk.ip` | `auto` to search the network, or the desk's IP address | `auto` |
+| `desk.name` | With `auto` and several desks around, use the one with this name | |
+| `channels` | One entry per strip on screen, left to right (see below) | channels 1–4 |
+| `use_desk_names` | Show the channel names typed into the desk | `false` |
+| `max_level_db` | Loudest the faders go. `0` = unity, like 1.x | `0` |
+| `level_display` | `0-10` (like 1.x) or `db` | `0-10` |
+| `security.pin_enabled` | Lock the screen with a PIN | `true` |
+| `security.pin` | PIN for everyday users | `1234` |
+| `security.admin_pin` | PIN that opens the installer settings | `000000` |
+| `security.lock_after_minutes` | Lock after this long untouched. `0` = never | `15` |
+| `security.max_attempts` / `lockout_seconds` | Wrong guesses allowed, then how long the keypad pauses | `5` / `60` |
+| `bluetooth.enabled` | Show the Bluetooth player | `true` |
+| `display.title` | Text in the top bar, e.g. the venue's name | `TouchDesk` |
+
+Each channel looks like this:
+
+```json
+{ "label": "Lectern", "type": "ch", "number": 1, "icon": "bluetooth" }
+```
+
+`type` is one of `ch` (input channel), `aux` (aux/line return), `fx` (effects return), `bus`, or `main` (the main LR mix). `icon` is optional; `bluetooth` shows the Bluetooth symbol instead of the label.
+
+If the file has a mistake, TouchDesk shows exactly what's wrong on the screen instead of starting.
+
+## Installer settings
+
+On the lock screen, enter the **installer PIN** instead of the user PIN. If the PIN lock is switched off, **press and hold the top bar for 3 seconds** to get the PIN pad.
+
+From there you can find and pick the desk, switch the PIN lock and auto-lock, change both PINs, choose 0–10 or dB readouts, show names from the desk, and exit to the desktop. The screen also shows the desk's model, name, address and firmware, and this unit's IP address.
+
+## Troubleshooting
+
+- **"Searching for desk" never finds it:** the Pi and desk must be on the same network. Try the desk's IP in `desk.ip`.
+- **Logs:** `~/.local/state/touchdesk/touchdesk.log`
+- **Run with full detail:** `~/.local/bin/touchdesk --windowed --verbose`
+- **No Bluetooth audio:** `systemctl status touchdesk-bt-agent`; check the desktop's audio output is the AV jack.
+
+## Adding another make of desk
+
+Desk profiles are in `touchdesk/desks/__init__.py`. A profile says which OSC address controls the fader, on/off and name of each kind of channel, and how to keep the desk sending updates. If you have a desk that speaks OSC, a list of its commands is all that's needed to add it. Please get in touch.
+
+## Development
+
+```bash
+pip install PySide6 python-osc pytest
+python3 -m pytest tests              # automated tests (no desk needed)
+python3 tests/screenshots.py shots   # render every screen to PNG
+python3 tests/fake_desk.py           # a tiny stand-in desk for trying the app without hardware
+python3 -m touchdesk --windowed --ip 127.0.0.1
+```
+
+The original 1.x script and install notes are kept in [`legacy/`](legacy/).
+
+## Background
+
+TouchDesk started during the March 2020 lockdown. I'm not a programmer: I learned Python from YouTube and a book on Qt, and through many late nights built the first version for a community venue, where it has run since September 2020. Users found it far easier than the desk itself, and the small screen freed up space in the hall.
+
+The aim is to give installers a cheap, reliable way to leave a simple interface for people with no sound experience, in schools, community centres and similar places that rely on their sound system but run on small budgets. TouchDesk is intended to be free forever. Installers may use it as part of a sound system installation, but it shouldn't be sold on its own.
+
+Thanks to scribles.net for the original Bluetooth control example, and to Eyllanesc on Stack Overflow for help with 1.x.
+
+Contact: info@reedaudiovisual.com

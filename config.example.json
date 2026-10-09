@@ -1,0 +1,33 @@
+{
+  "desk": {
+    "model": "xair",
+    "ip": "auto",
+    "port": null,
+    "name": ""
+  },
+  "channels": [
+    { "label": "#1", "type": "ch", "number": 1 },
+    { "label": "#2", "type": "ch", "number": 2 },
+    { "label": "#3", "type": "ch", "number": 3 },
+    { "label": "#4", "type": "ch", "number": 4, "icon": "bluetooth" }
+  ],
+  "use_desk_names": false,
+  "max_level_db": 0,
+  "level_display": "0-10",
+  "security": {
+    "pin_enabled": true,
+    "pin": "1234",
+    "admin_pin": "000000",
+    "lock_after_minutes": 15,
+    "max_attempts": 5,
+    "lockout_seconds": 60
+  },
+  "bluetooth": {
+    "enabled": true
+  },
+  "display": {
+    "title": "",
+    "fullscreen": true,
+    "hide_cursor": true
+  }
+}
