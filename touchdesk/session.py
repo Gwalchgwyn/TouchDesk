@@ -14,6 +14,7 @@ import time
 from dataclasses import dataclass
 
 from PySide6.QtCore import QObject, QTimer, Signal
+from PySide6.QtNetwork import QAbstractSocket, QNetworkInterface
 
 from touchdesk.config import Config
 from touchdesk.desks import get_profile
@@ -27,6 +28,22 @@ OFFLINE_AFTER_S = 8.0  # silence for this long = desk is offline
 SEARCH_INTERVAL_MS = 3000
 RESEARCH_AFTER_S = 20.0  # in "auto" mode, search again if offline this long
 ECHO_GUARD_S = 0.5  # ignore desk fader reports this soon after we moved it
+
+
+def broadcast_addresses() -> list[str]:
+    """Directed broadcast address of every active IPv4 network connection."""
+    out = []
+    flags = QNetworkInterface.InterfaceFlag
+    for iface in QNetworkInterface.allInterfaces():
+        f = iface.flags()
+        if not (f & flags.IsUp and f & flags.IsRunning and f & flags.CanBroadcast) or f & flags.IsLoopBack:
+            continue
+        for entry in iface.addressEntries():
+            ip, bc = entry.ip(), entry.broadcast()
+            if ip.protocol() == QAbstractSocket.NetworkLayerProtocol.IPv4Protocol and not bc.isNull():
+                if bc.toString() not in out:
+                    out.append(bc.toString())
+    return out
 
 
 @dataclass
@@ -110,8 +127,16 @@ class DeskSession(QObject):
             self.osc.send(self.host, self.port, addr, args)
 
     def _search(self) -> None:
+        """Ask every desk on the network to identify itself.
+
+        Sent to 255.255.255.255 and also to each network connection's own
+        broadcast address: on a network with no router (e.g. just a switch,
+        everything on 169.254.x.x addresses) there's no default route and the
+        plain 255.255.255.255 broadcast may go nowhere.
+        """
         addr, args = self.profile.probe_message()
-        self.osc.send("broadcast", self.port, addr, args)
+        for dest in ["broadcast", *broadcast_addresses()]:
+            self.osc.send(dest, self.port, addr, args)
 
     def _subscribe(self) -> None:
         if self.host:

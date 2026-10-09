@@ -38,6 +38,12 @@ Everything here has been tested in software against a stand-in desk. This list c
 - [ ] "Find desk" in installer settings lists the XR12
 - [ ] Names from the desk: rename a channel in X AIR Edit and it changes on screen
 
+### Venue network (no router)
+- [ ] Connect only the Pi and the XR12 to a plain switch (no router, no internet)
+- [ ] Reboot the Pi: in installer settings, "This unit" shows a `169.254.x.x` address
+- [ ] TouchDesk finds the desk by itself and shows "Desk connected"
+- [ ] Power-cycle the XR12 on the switch: TouchDesk reconnects
+
 ### Touchscreen
 - [ ] Fader drag feels right, no jitter while dragging
 - [ ] Wrong PIN ×5 pauses the keypad; correct PIN works afterwards

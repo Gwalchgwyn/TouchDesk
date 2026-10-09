@@ -8,6 +8,7 @@
 #
 #   --room blue|green   set the room name (top bar + Bluetooth name) and its channels
 #   --bluetooth         also set the Pi up as a Bluetooth speaker
+#   --no-network        leave the Pi's network settings alone
 #
 # Safe to run again: it upgrades the app but keeps your settings
 # (except the room, if you give --room).
@@ -22,10 +23,12 @@ CONF_DIR="$HOME/.config/touchdesk"
 CONF="$CONF_DIR/config.json"
 BIN="$HOME/.local/bin"
 WITH_BT=0
+NET=1
 ROOM=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --bluetooth) WITH_BT=1 ;;
+    --no-network) NET=0 ;;
     --room) shift; ROOM="${1:-}" ;;
     -h|--help) sed -n '2,15p' "$0"; exit 0 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
@@ -168,6 +171,35 @@ Comment=Touchscreen sound desk remote
 Exec=$BIN/touchdesk
 X-GNOME-Autostart-enabled=true
 EOF
+
+if [ "$NET" -eq 1 ] && command -v nmcli >/dev/null; then
+  say "Network: allow 169.254.x.x addresses when there's no router"
+  # Venues often have just a switch: the desk and Pis then give themselves
+  # 169.254.x.x ("link-local") addresses. Older Raspberry Pi OS did this by
+  # itself; NetworkManager (Raspberry Pi OS 12+) doesn't unless asked.
+  # Where a router hands out addresses (DHCP), that still works as normal.
+  # "fallback" (only when there's no other address) needs NetworkManager 1.52+;
+  # older versions get "enabled" (a 169.254 address alongside any DHCP one).
+  NM_VER="$(nmcli --version | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)"
+  if printf '1.52.0\n%s\n' "$NM_VER" | sort -V -C; then LL=fallback; else LL=enabled; fi
+  FOUND=0
+  while IFS=: read -r NAME TYPE; do
+    [ "$TYPE" = "802-3-ethernet" ] || continue
+    FOUND=1
+    METHOD="$(nmcli -g ipv4.method connection show "$NAME")"
+    if [ "$METHOD" != "auto" ]; then
+      echo "  '$NAME' uses a fixed address ($METHOD) - leaving it alone."
+      continue
+    fi
+    if sudo nmcli connection modify "$NAME" ipv4.link-local "$LL" ipv4.may-fail yes ipv4.dhcp-timeout 2147483647; then
+      echo "  '$NAME': DHCP when available, otherwise 169.254.x.x (link-local: $LL)"
+    else
+      warn "Couldn't change '$NAME'."
+    fi
+  done < <(nmcli -t -f NAME,TYPE connection show)
+  [ "$FOUND" -eq 1 ] && echo "  Takes effect after the next reboot (or cable re-plug)."
+  [ "$FOUND" -eq 0 ] && warn "No wired network connection found to adjust."
+fi
 
 if command -v raspi-config >/dev/null; then
   say "Turning off screen blanking"

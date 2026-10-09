@@ -58,6 +58,15 @@ To try it in a window first: `~/.local/bin/touchdesk --windowed`
 
 To remove it: `bash deploy/uninstall.sh`
 
+## Networks without a router
+
+At the original venue the desk and both Pis share a plain PoE switch with no router, so nothing hands out IP addresses and every device gives itself a `169.254.x.x` ("link-local") address. That's fine:
+
+- TouchDesk finds the desk by itself (`desk.ip` = `auto`), so nobody needs to look up addresses. It searches again if the desk disappears, so it copes if the desk's address changes.
+- Current Raspberry Pi OS doesn't pick a `169.254` address on its own, so the installer switches that on for the wired connection. Where there *is* a router, the Pi uses it as normal. Use `--no-network` to skip this.
+
+`tests/venue_network.sh` recreates this setup in software and checks the desk is found.
+
 ## Settings
 
 Settings live in `~/.config/touchdesk/config.json`. The common ones can be changed on the touchscreen (see below). Everything else is in the file:

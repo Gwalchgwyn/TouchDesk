@@ -12,11 +12,13 @@ Rebuilt from TouchDesk 1.1. Same look, new internals.
 - Images loaded from a relative `./images` folder that wasn't in the repository.
 - OSC addresses had trailing slashes and used `/ch/0N/mix/` for mute; now the documented `/ch/NN/mix/on` and `/ch/NN/mix/fader`, which also work for channels 10 and up.
 - Screen didn't reflect the desk's real state at start-up or after changes made elsewhere.
+- Desk IP address was hard-coded; a link-local address can change, which would silently break the screen.
 - Auto-start ran as root from `/etc/profile` on every login shell.
 
 ### Added
 - Two-way sync with the desk (`/xremote` subscription, re-read on reconnect).
-- Desk auto-discovery, connection status and offline banner.
+- Desk auto-discovery, connection status and offline banner. Discovery works on networks with no router (switch only, 169.254.x.x addresses).
+- Installer configures the Pi's wired connection to fall back to a 169.254.x.x address when there's no DHCP server (NetworkManager doesn't by default).
 - Settings file with validation and on-screen error reporting.
 - Configurable channels: choose which four desk channels a screen controls.
 - Installer room presets: Blue Room (channels 1–4) and Green Room (5–8), each with its own Bluetooth name.
