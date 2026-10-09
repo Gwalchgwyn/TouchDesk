@@ -43,3 +43,20 @@ def desk():
     d = FakeDesk(port=0, host="127.0.0.1").start()
     yield d
     d.stop()
+
+
+_status = {"code": 0}
+
+
+def pytest_sessionfinish(session, exitstatus):
+    _status["code"] = int(exitstatus)
+
+
+def pytest_unconfigure(config):
+    # Same reason as touchdesk/__main__.py: avoid a PySide6 crash during
+    # interpreter clean-up on some Python versions (seen on 3.11).
+    import sys
+
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(_status["code"])

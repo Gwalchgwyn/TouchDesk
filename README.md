@@ -18,7 +18,7 @@ TouchDesk 1.x ran 24/7 at a community venue from September 2020. Version 2 keeps
 - **Installer settings on the touchscreen,** behind a separate installer PIN: find desk, PIN lock on/off, auto-lock time, change PINs, 0–10 or dB readouts, names from the desk.
 - **Better PIN lock.** Digits are hidden as you type, and too many wrong guesses pause the keypad for a minute.
 - **Mute All works even when the screen is locked,** so anyone can kill feedback.
-- **Any number of channels** (up to 16). With more than 4, the Bluetooth player moves to its own tab.
+- **Choose which four desk channels a screen controls,** so one desk can serve several rooms, each with its own screen, Bluetooth name and Mute All.
 - **Desk profiles.** Behringer X Air (XR12/XR16/XR18) and Midas MR. Behringer X32 / Midas M32 is included but untested.
 - **One-command install** on a fresh Raspberry Pi OS, with auto-start and automatic restart if anything goes wrong.
 - **Modern Qt (PySide6)** and an automated test suite.
@@ -37,8 +37,19 @@ On the Pi, in a terminal:
 ```bash
 git clone https://github.com/Gwalchgwyn/TouchDesk.git
 cd TouchDesk
-bash deploy/install.sh --bluetooth     # leave off --bluetooth if you don't need it
+bash deploy/install.sh --room blue --bluetooth     # leave off --bluetooth if you don't need it
 ```
+
+### Rooms
+
+One XR12 can serve two rooms, each with its own TouchDesk screen:
+
+| Room | Option | Desk channels | Shows on phones as |
+|---|---|---|---|
+| Blue Room | `--room blue` | 1–4 | Blue Room |
+| Green Room | `--room green` | 5–8 | Green Room |
+
+In each room, inputs #1–#3 are the wall sockets and the fourth channel is the Pi's own Bluetooth audio (from its 3.5 mm jack, through a passive balancer, down the spare pair of the Cat5 to the desk). Mute All on each screen only mutes that room's channels. Leave out `--room` and the installer asks; choose "neither" to set channels up yourself in the settings file.
 
 The installer asks for a user PIN and an installer PIN, sets everything up, and makes TouchDesk start full screen whenever the Pi boots. Run it again any time to upgrade; your settings are kept.
 
@@ -55,7 +66,7 @@ Settings live in `~/.config/touchdesk/config.json`. The common ones can be chang
 | `desk.model` | `xair` (X Air / Midas MR) or `x32` (X32 / M32) | `xair` |
 | `desk.ip` | `auto` to search the network, or the desk's IP address | `auto` |
 | `desk.name` | With `auto` and several desks around, use the one with this name | |
-| `channels` | One entry per strip on screen, left to right (see below) | channels 1–4 |
+| `channels` | Up to 4 strips, left to right (see below) | channels 1–4 |
 | `use_desk_names` | Show the channel names typed into the desk | `false` |
 | `max_level_db` | Loudest the faders go. `0` = unity, like 1.x | `0` |
 | `level_display` | `0-10` (like 1.x) or `db` | `0-10` |
@@ -65,7 +76,7 @@ Settings live in `~/.config/touchdesk/config.json`. The common ones can be chang
 | `security.lock_after_minutes` | Lock after this long untouched. `0` = never | `15` |
 | `security.max_attempts` / `lockout_seconds` | Wrong guesses allowed, then how long the keypad pauses | `5` / `60` |
 | `bluetooth.enabled` | Show the Bluetooth player | `true` |
-| `display.title` | Text in the top bar, e.g. the venue's name | `TouchDesk` |
+| `display.title` | Text in the top bar, e.g. the room's name | `TouchDesk` |
 
 Each channel looks like this:
 
@@ -73,7 +84,7 @@ Each channel looks like this:
 { "label": "Lectern", "type": "ch", "number": 1, "icon": "bluetooth" }
 ```
 
-`type` is one of `ch` (input channel), `aux` (aux/line return), `fx` (effects return), `bus`, or `main` (the main LR mix). `icon` is optional; `bluetooth` shows the Bluetooth symbol instead of the label.
+`number` is the desk's channel number. `type` is normally `ch` (an input channel); `aux` (aux/line return), `fx` (effects return), `bus` and `main` are also possible. `icon` is optional; `bluetooth` shows the Bluetooth symbol instead of the label.
 
 If the file has a mistake, TouchDesk shows exactly what's wrong on the screen instead of starting.
 

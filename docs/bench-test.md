@@ -21,7 +21,7 @@ Everything here has been tested in software against a stand-in desk. This list c
 ## On the day
 
 ### Install
-- [ ] Copy the code to the Pi and run `bash deploy/install.sh --bluetooth`
+- [ ] Copy the code to the Pi and run `bash deploy/install.sh --room blue --bluetooth`
 - [ ] Installer finishes with no red errors; note whether PySide6 came from apt or pip
 - [ ] `~/.local/bin/touchdesk --windowed` opens the window
 
@@ -32,6 +32,7 @@ Everything here has been tested in software against a stand-in desk. This list c
 - [ ] ON/OFF on screen mutes/unmutes the channel, and back again
 - [ ] Top of fader travel = 0 dB on the desk (same as 1.x)
 - [ ] Mute All mutes channels 1–4 and nothing else, including from the lock screen
+- [ ] Re-run the installer with `--room green`: screen says Green Room and controls channels 5–8
 - [ ] Unplug the desk's network cable: banner appears within ~10 s; plug back in: recovers and re-reads levels
 - [ ] Power-cycle the desk: TouchDesk reconnects by itself
 - [ ] "Find desk" in installer settings lists the XR12
@@ -45,7 +46,7 @@ Everything here has been tested in software against a stand-in desk. This list c
 - [ ] Text sizes readable at arm's length
 
 ### Bluetooth
-- [ ] Pi appears as "TouchDesk" on a phone and pairs with no PIN
+- [ ] Pi appears as "Blue Room" (then "Green Room") on a phone and pairs with no PIN
 - [ ] Music plays out of the 3.5 mm jack
 - [ ] Track/artist show on screen; play/pause/skip work
 - [ ] Start TouchDesk with **no** phone connected: it starts normally (the 1.x crash)

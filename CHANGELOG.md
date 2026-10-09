@@ -18,7 +18,8 @@ Rebuilt from TouchDesk 1.1. Same look, new internals.
 - Two-way sync with the desk (`/xremote` subscription, re-read on reconnect).
 - Desk auto-discovery, connection status and offline banner.
 - Settings file with validation and on-screen error reporting.
-- Configurable channels (1–16), including aux/FX returns, buses and main LR.
+- Configurable channels: choose which four desk channels a screen controls.
+- Installer room presets: Blue Room (channels 1–4) and Green Room (5–8), each with its own Bluetooth name.
 - Installer settings screen behind a separate PIN.
 - PIN masking and lockout; Mute All available while locked.
 - Desk channel names, dB readout option, configurable maximum level.

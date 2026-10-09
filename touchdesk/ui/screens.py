@@ -6,7 +6,7 @@ import math
 import time
 
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QNetworkInterface
+from PySide6.QtNetwork import QAbstractSocket, QNetworkInterface
 from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
@@ -40,8 +40,15 @@ class LockScreen(QWidget):
         self.pad = PinPad("Enter PIN")
         self.pad.submitted.connect(self._check)
         self.pad.touched.connect(self.touched)
+        self.back = QPushButton("Back")
+        self.back.setObjectName("AdminButton")
+        self.back.hide()
         lay = QVBoxLayout(self)
-        lay.addWidget(self.pad)
+        lay.addWidget(self.pad, 1)
+        row = QHBoxLayout()
+        row.addStretch(1)
+        row.addWidget(self.back)
+        lay.addLayout(row)
         self._tick = QTimer(self, interval=250)
         self._tick.timeout.connect(self._countdown)
 
@@ -187,10 +194,10 @@ class MixerScreen(QWidget):
             self.strips.append(s)
             lay.addWidget(s, 1)
         if bt_panel is not None:
-            # TouchDesk 1.x layout: 4 strips on the left, player on the right.
-            lay.addWidget(bt_panel, max(1, 8 - n))
+            # TouchDesk 1.x layout: strips on the left, player on the right.
+            lay.addWidget(bt_panel, 8 - n)
         else:
-            lay.addStretch(max(0, 8 - n))
+            lay.addStretch(8 - n)
 
         self.banner = QLabel(self)
         self.banner.setObjectName("Banner")
@@ -225,7 +232,7 @@ class MixerScreen(QWidget):
 
     def _place_banner(self) -> None:
         n = len(self.strips)
-        w = self.width() * (n / (n + max(1, 8 - n))) if n < 8 else self.width()
+        w = self.width() * n / 8  # the strips take n/8 of the width
         bw = min(int(w) - 20, 520)
         bw = max(bw, 200)
         self.banner.setFixedWidth(bw)
@@ -282,7 +289,7 @@ class AdminScreen(QWidget):
         b = QPushButton(text)
         b.setObjectName("AdminButton")
         if primary:
-            b.setProperty("primary", True)
+            b.setProperty("primary", "true")
         b.clicked.connect(fn)
         b.pressed.connect(self.touched)
         return b

@@ -58,6 +58,7 @@ DEFAULTS: dict = {
     },
 }
 
+MAX_CHANNELS = 4
 CHANNEL_KINDS = {"ch", "aux", "fx", "bus", "main"}
 LEVEL_DISPLAYS = {"0-10", "db"}
 
@@ -156,8 +157,8 @@ def from_dict(user: dict, path: Path | None = None) -> Config:
     if not isinstance(raw, list) or not raw:
         errors.append("channels must be a list with at least one channel")
         raw = []
-    if len(raw) > 16:
-        errors.append("TouchDesk supports at most 16 channels on screen")
+    if len(raw) > MAX_CHANNELS:
+        errors.append(f"TouchDesk shows at most {MAX_CHANNELS} channels")
     for i, ch in enumerate(raw, start=1):
         if not isinstance(ch, dict):
             errors.append(f"channel {i} must be an object")

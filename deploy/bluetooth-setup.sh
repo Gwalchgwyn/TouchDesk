@@ -38,7 +38,8 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 sudo systemctl daemon-reload
-sudo systemctl enable --now touchdesk-bt-agent.service
+sudo systemctl enable touchdesk-bt-agent.service
+sudo systemctl restart touchdesk-bt-agent.service
 
 say "Bluetooth ready"
 cat <<EOF

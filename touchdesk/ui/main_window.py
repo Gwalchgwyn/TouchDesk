@@ -7,7 +7,6 @@ import logging
 from PySide6.QtCore import QEvent, QObject, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QApplication,
-    QButtonGroup,
     QHBoxLayout,
     QLabel,
     QPushButton,
@@ -21,12 +20,9 @@ from touchdesk.config import Config
 from touchdesk.session import DeskSession
 from touchdesk.ui import theme
 from touchdesk.ui.screens import AdminScreen, BluetoothPanel, LockScreen, MixerScreen
-from touchdesk.ui.widgets import LongPressArea, set_prop
+from touchdesk.ui.widgets import LongPressArea
 
 log = logging.getLogger(__name__)
-
-# Above this many channels the Bluetooth player gets its own tab.
-MAX_STRIPS_BESIDE_PLAYER = 4
 
 
 class ActivityWatcher(QObject):
@@ -41,7 +37,7 @@ class ActivityWatcher(QObject):
 
 
 class MainWindow(QWidget):
-    LOCK, MIXER, BLUETOOTH, ADMIN = range(4)
+    LOCK, MIXER, ADMIN = range(3)
 
     def __init__(self, config: Config, session: DeskSession, bt: BluetoothBackend | None, scale: float = 1.0):
         super().__init__()
@@ -52,17 +48,13 @@ class MainWindow(QWidget):
         self.setWindowTitle("TouchDesk")
         self.setStyleSheet(theme.stylesheet(scale))
 
-        beside = bt is not None and len(config.channels) <= MAX_STRIPS_BESIDE_PLAYER
-        self.bt_tab = bt is not None and not beside
-
         # --- screens
         self.lock = LockScreen(config)
-        self.mixer = MixerScreen(config, session, BluetoothPanel(bt) if beside else None)
-        self.bt_panel = BluetoothPanel(bt) if self.bt_tab else QWidget()
+        self.mixer = MixerScreen(config, session, BluetoothPanel(bt) if bt is not None else None)
         self.admin = AdminScreen(config, session)
         self.stack = QStackedWidget()
         self.stack.setObjectName("Main")
-        for w in (self.lock, self.mixer, self.bt_panel, self.admin):
+        for w in (self.lock, self.mixer, self.admin):
             self.stack.addWidget(w)
 
         # --- top bar
@@ -73,13 +65,6 @@ class MainWindow(QWidget):
         bl = QHBoxLayout(bar)
         bl.setContentsMargins(0, 0, 0, 0)
         bl.setSpacing(0)
-        self.tabs = QButtonGroup(self)
-        self.tab_mixer = self._tab("Mixer", self.MIXER)
-        bl.addWidget(self.tab_mixer)
-        self.tab_bt = None
-        if self.bt_tab:
-            self.tab_bt = self._tab("Bluetooth", self.BLUETOOTH)
-            bl.addWidget(self.tab_bt)
         title = QLabel(config.data.get("display", {}).get("title") or "TouchDesk")
         title.setObjectName("Title")
         bl.addWidget(title)
@@ -106,6 +91,7 @@ class MainWindow(QWidget):
         # --- wiring
         self.lock.unlocked.connect(lambda: self.show_page(self.MIXER))
         self.lock.admin.connect(lambda: self.show_page(self.ADMIN))
+        self.lock.back.clicked.connect(lambda: self.show_page(self.MIXER))
         self.admin.closed.connect(self._admin_closed)
         self.admin.settings_changed.connect(self._settings_changed)
         self.admin.exit_requested.connect(QApplication.instance().quit)
@@ -122,28 +108,13 @@ class MainWindow(QWidget):
         self.show_page(self.LOCK if config.security["pin_enabled"] else self.MIXER)
         self._update_status()
 
-    def _tab(self, text: str, page: int) -> QPushButton:
-        b = QPushButton(text)
-        b.setCheckable(True)
-        b.setProperty("tab", True)
-        b.clicked.connect(lambda: self.show_page(page))
-        self.tabs.addButton(b)
-        return b
-
     # ------------------------------------------------------------ navigation
     def show_page(self, page: int) -> None:
         self.stack.setCurrentIndex(page)
-        unlocked = page in (self.MIXER, self.BLUETOOTH)
-        if page == self.LOCK and not self.config.security["pin_enabled"]:
-            unlocked = True  # reached by long-press; let them tap back to the mixer
-        for b in self.tabs.buttons():
-            b.setEnabled(unlocked)
+        # Reached by long-press with the PIN lock off: offer a way back.
+        self.lock.back.setVisible(page == self.LOCK and not self.config.security["pin_enabled"])
         # Mute All stays usable even when locked: anyone can silence feedback.
         self.b_lock.setVisible(bool(self.config.security["pin_enabled"]) and page != self.LOCK)
-        if page == self.MIXER:
-            self.tab_mixer.setChecked(True)
-        elif page == self.BLUETOOTH and self.tab_bt:
-            self.tab_bt.setChecked(True)
         if page == self.LOCK:
             self.lock.reset()
         if page == self.ADMIN:
@@ -195,4 +166,3 @@ class MainWindow(QWidget):
             text, colour = "● Desk offline", theme.BAD
         self.status.setText(text)
         self.status.setStyleSheet(f"color: {colour};")
-        set_prop(self.status, "online", s.online)

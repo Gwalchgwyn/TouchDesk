@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import re
 
-from touchdesk.desks.faderlaw import db_to_float, float_to_db  # noqa: F401  (re-export)
+
 
 
 @dataclass(frozen=True)

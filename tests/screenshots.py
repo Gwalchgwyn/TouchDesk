@@ -39,7 +39,7 @@ def shoot(win, out, name, w=800, h=480):
 def main(out):
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    app = QApplication.instance() or QApplication([])
+    QApplication.instance() or QApplication([])
     desk = FakeDesk(port=0, host="127.0.0.1").start()
     desk.state["/ch/02/mix/fader"] = 0.45
     desk.state["/ch/03/mix/on"] = 0
@@ -74,12 +74,11 @@ def main(out):
     shoot(win, out, "4b-admin-pin")
     s.stop(); win.close()
 
-    win, s = make({"level_display": "db", "use_desk_names": True, "channels": [
-        {"type": "ch", "number": n} for n in range(1, 9)] + [{"type": "main", "label": "Main"}],
-        "security": {"pin_enabled": False}})
-    shoot(win, out, "3-eight-channels-db")
-    win.show_page(win.BLUETOOTH)
-    shoot(win, out, "3b-bluetooth-tab")
+    win, s = make({"level_display": "db", "display": {"title": "Green Room"},
+                   "channels": [{"label": f"#{i}", "type": "ch", "number": 4 + i,
+                                 **({"icon": "bluetooth"} if i == 4 else {})} for i in range(1, 5)],
+                   "security": {"pin_enabled": False}})
+    shoot(win, out, "3-green-room-db")
     s.stop(); win.close()
 
     desk.silent = True

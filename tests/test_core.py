@@ -70,6 +70,11 @@ def test_bad_config_lists_every_problem():
     assert "yamaha" in msg and "pin" in msg and "level_display" in msg
 
 
+def test_at_most_four_channels():
+    with pytest.raises(cfgmod.ConfigError, match="at most 4"):
+        cfgmod.from_dict({"channels": [{"number": n} for n in range(1, 6)]})
+
+
 def test_missing_file_writes_defaults(tmp_path):
     p = tmp_path / "config.json"
     c = cfgmod.load(p)

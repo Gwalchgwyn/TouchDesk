@@ -26,6 +26,8 @@ def repolish(w: QWidget) -> None:
 
 
 def set_prop(w: QWidget, name: str, value) -> None:
+    # Always store strings: bool properties trip a PySide6 bug on Python 3.11.
+    value = ("true" if value else "false") if isinstance(value, bool) else str(value)
     if w.property(name) != value:
         w.setProperty(name, value)
         repolish(w)
@@ -282,7 +284,7 @@ class PinPad(QWidget):
         b = QPushButton(text)
         b.setObjectName("Key")
         if small:
-            b.setProperty("small", True)
+            b.setProperty("small", "true")
         b.clicked.connect(fn)
         b.pressed.connect(self.touched)
         self.keys.append(b)

@@ -42,9 +42,7 @@ def stylesheet(s: float) -> str:
     }}
     #TopBar QPushButton:pressed {{ background: {PANEL}; }}
     #TopBar QPushButton:disabled {{ color: #4d5d6b; }}
-    #TopBar QPushButton[tab="true"] {{ border-left: none; border-right: 1px solid #ffffff; }}
-    #TopBar QPushButton[tab="true"]:checked {{ background: {PANEL}; }}
-    #Title {{ font-size: {px(18)}; font-weight: bold; padding: 0 {px(12)}; }}
+    #Title {{ font-size: {px(20)}; font-weight: bold; padding: 0 {px(16)}; }}
     #Status {{ font-size: {px(14)}; padding: 0 {px(10)}; }}
 
     /* channel strips */
