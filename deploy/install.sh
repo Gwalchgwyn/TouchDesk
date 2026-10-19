@@ -209,8 +209,10 @@ Terminal=false
 Categories=AudioVideo;
 DESKTOP
 cp "$HOME/.local/share/applications/touchdesk.desktop" "$HOME/Desktop/TouchDesk.desktop"
-chmod +x "$HOME/Desktop/TouchDesk.desktop"
-# Don't ask "execute or open?" when the desktop icon is tapped.
+# Must NOT be executable: the desktop (libfm) treats an executable .desktop
+# file as a script and asks "Execute / Open?" (found on the Green Room Pi).
+chmod -x "$HOME/Desktop/TouchDesk.desktop"
+# Belt and braces: don't ask "execute or open?" for scripts either.
 python3 - "$HOME/.config/libfm/libfm.conf" <<'PY'
 import configparser, os, sys
 path = sys.argv[1]
