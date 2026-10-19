@@ -22,6 +22,7 @@ TouchDesk 1.x ran 24/7 at a community venue from September 2020. Version 2 keeps
 - **Mute All works even when the screen is locked,** so anyone can kill feedback.
 - **Choose which four desk channels a screen controls,** so one desk can serve several rooms, each with its own screen, Bluetooth name and Mute All.
 - **Desk profiles.** Behringer X Air (XR12/XR16/XR18) and Midas MR. Behringer X32 / Midas M32 is included but untested.
+- **A TouchDesk icon on the desktop and taskbar**, so it can be restarted with one tap if it's ever closed. Only one copy can run at a time.
 - **One-command install** on a fresh Raspberry Pi OS, with auto-start and automatic restart if anything goes wrong.
 - **Modern Qt (PySide6)** and an automated test suite.
 

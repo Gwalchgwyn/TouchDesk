@@ -67,6 +67,7 @@ Everything here has been tested in software against a stand-in desk. This list c
 - [ ] Screen doesn't blank after 10+ minutes
 - [ ] `pkill -9 -f "python.* -m touchdesk"` from SSH: it comes back within ~3 s
 - [ ] "Exit to desktop" in installer settings leaves it closed
+- [ ] Tapping the TouchDesk icon (desktop or taskbar) starts it again; tapping again while it runs does nothing
 - [ ] Leave it running overnight; check `~/.local/state/touchdesk/touchdesk.log` next day
 
 ## If something fails

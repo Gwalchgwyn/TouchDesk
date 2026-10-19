@@ -179,6 +179,12 @@ cat > "$BIN/touchdesk" <<EOF
 # Starts TouchDesk and restarts it if it ever crashes.
 # Choosing "Exit to desktop" in the installer settings stops it for good.
 export PYTHONPATH="$APP"
+# Only ever one copy: tapping the desktop icon while it's running does nothing.
+exec 9>"\${XDG_RUNTIME_DIR:-/tmp}/touchdesk.lock"
+if ! flock -n 9; then
+  echo "TouchDesk is already running." >&2
+  exit 0
+fi
 while true; do
   "$VENV/bin/python" -m touchdesk "\$@" && exit 0
   echo "TouchDesk stopped unexpectedly - restarting in 3 seconds" >&2
@@ -186,6 +192,62 @@ while true; do
 done
 EOF
 chmod +x "$BIN/touchdesk"
+
+say "Adding a TouchDesk icon (desktop, menu and taskbar)"
+# So it can be restarted with a tap if it's ever closed - no keyboard or mouse needed.
+ICON_DIR="$HOME/.local/share/icons"
+mkdir -p "$ICON_DIR" "$HOME/.local/share/applications" "$HOME/Desktop"
+cp "$SRC/deploy/touchdesk.svg" "$ICON_DIR/touchdesk.svg"
+cat > "$HOME/.local/share/applications/touchdesk.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=TouchDesk
+Comment=Start the TouchDesk sound desk remote
+Exec=$BIN/touchdesk
+Icon=$ICON_DIR/touchdesk.svg
+Terminal=false
+Categories=AudioVideo;
+DESKTOP
+cp "$HOME/.local/share/applications/touchdesk.desktop" "$HOME/Desktop/TouchDesk.desktop"
+chmod +x "$HOME/Desktop/TouchDesk.desktop"
+# Don't ask "execute or open?" when the desktop icon is tapped.
+python3 - "$HOME/.config/libfm/libfm.conf" <<'PY'
+import configparser, os, sys
+path = sys.argv[1]
+os.makedirs(os.path.dirname(path), exist_ok=True)
+c = configparser.ConfigParser(interpolation=None)
+c.optionxform = str
+c.read(path)
+if not c.has_section("config"):
+    c.add_section("config")
+c.set("config", "quick_exec", "1")
+with open(path, "w") as f:
+    c.write(f)
+PY
+# One-tap button on the taskbar, next to the browser/files/terminal buttons.
+PANEL_SYS=/etc/xdg/wf-panel-pi/wf-panel-pi.ini
+PANEL_USR="$HOME/.config/wf-panel-pi/wf-panel-pi.ini"
+if [ -f "$PANEL_SYS" ]; then
+  mkdir -p "$(dirname "$PANEL_USR")"
+  python3 - "$PANEL_SYS" "$PANEL_USR" <<'PY'
+import configparser, sys
+sys_ini, usr_ini = sys.argv[1:3]
+def load(path):
+    c = configparser.ConfigParser(interpolation=None)
+    c.optionxform = str
+    c.read(path)
+    return c
+s, u = load(sys_ini), load(usr_ini)
+if not u.has_section("panel"):
+    u.add_section("panel")
+launchers = u.get("panel", "launchers", fallback=s.get("panel", "launchers", fallback="")).split()
+if "touchdesk" not in launchers:
+    launchers.insert(0, "touchdesk")
+u.set("panel", "launchers", " ".join(launchers))
+with open(usr_ini, "w") as f:
+    u.write(f)
+PY
+fi
 
 say "Starting TouchDesk automatically when the desktop loads"
 mkdir -p "$HOME/.config/autostart"
