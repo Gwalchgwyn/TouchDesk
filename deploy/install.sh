@@ -227,22 +227,24 @@ Terminal=false
 Categories=AudioVideo;
 DESKTOP
 cp "$HOME/.local/share/applications/touchdesk.desktop" "$HOME/Desktop/TouchDesk.desktop"
-# Must NOT be executable: the desktop (libfm) treats an executable .desktop
-# file as a script and asks "Execute / Open?" (found on the Green Room Pi).
+# Not executable: it doesn't need to be, and an executable text file looks
+# like a script to the desktop.
 chmod -x "$HOME/Desktop/TouchDesk.desktop"
-# Belt and braces: don't ask "execute or open?" for scripts either.
-python3 - "$HOME/.config/libfm/libfm.conf" <<'PY'
+# Tapping a desktop icon asks "Execute / Open?" unless quick_exec is on.
+# Raspberry Pi OS 13's desktop (pcmanfm-pi) reads it from its own settings
+# file, not libfm.conf as older versions did, so set it in both.
+python3 - "$HOME/.config/pcmanfm/default/pcmanfm.conf" "$HOME/.config/libfm/libfm.conf" <<'PY'
 import configparser, os, sys
-path = sys.argv[1]
-os.makedirs(os.path.dirname(path), exist_ok=True)
-c = configparser.ConfigParser(interpolation=None)
-c.optionxform = str
-c.read(path)
-if not c.has_section("config"):
-    c.add_section("config")
-c.set("config", "quick_exec", "1")
-with open(path, "w") as f:
-    c.write(f)
+for path in sys.argv[1:]:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    c = configparser.ConfigParser(interpolation=None, strict=False)
+    c.optionxform = str
+    c.read(path)
+    if not c.has_section("config"):
+        c.add_section("config")
+    c.set("config", "quick_exec", "1")
+    with open(path, "w") as f:
+        c.write(f, space_around_delimiters=False)
 PY
 # One-tap button on the taskbar, next to the browser/files/terminal buttons.
 PANEL_SYS=/etc/xdg/wf-panel-pi/wf-panel-pi.ini
