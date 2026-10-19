@@ -118,7 +118,7 @@ Type the **installer PIN** on the lock screen. From there you can:
 
 - **Forget phones**: tap twice to clear every remembered phone (the Pi forgets old ones by itself after 10).
 - Switch the PIN lock on or off, change the auto-lock time, change either PIN, and show levels as 0–10 or dB.
-- **Exit to desktop**: closes TouchDesk. To start it again, tap the TouchDesk icon on the taskbar, or the icon on the desktop (if it asks *Execute / Open*, tap **Execute**). Restarting the Pi also starts it.
+- **Exit to desktop**: closes TouchDesk. To start it again, tap the TouchDesk icon on the taskbar, or the icon on the desktop. Restarting the Pi also starts it.
 
 ## Updating TouchDesk later
 

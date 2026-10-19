@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1 (2026-10-19)
+
+### Fixed
+- Tapping the desktop icon asked "Execute / Open?" on Raspberry Pi OS 13. Its desktop (pcmanfm-pi) keeps the "don't ask" setting in its own settings file; the installer now sets it there too.
+
 ## 2.0.0 (2026-10-19)
 
 Rebuilt from TouchDesk 1.1. Same look, new internals. Installed and tested at the original venue on both rooms (XR12, firmware 1.09).
