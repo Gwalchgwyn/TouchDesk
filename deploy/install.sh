@@ -185,6 +185,10 @@ if ! flock -n 9; then
   echo "TouchDesk is already running." >&2
   exit 0
 fi
+# Pi's audio output to 100% on every start (the OS defaults to ~40%, and the
+# desk channel's gain is set expecting full level). Runs in the background
+# because the audio system may still be starting when TouchDesk does.
+"$BIN/touchdesk-volume" >/dev/null 2>&1 &
 while true; do
   "$VENV/bin/python" -m touchdesk "\$@" && exit 0
   echo "TouchDesk stopped unexpectedly - restarting in 3 seconds" >&2
@@ -192,6 +196,20 @@ while true; do
 done
 EOF
 chmod +x "$BIN/touchdesk"
+cat > "$BIN/touchdesk-volume" <<'EOF'
+#!/usr/bin/env bash
+# Sets the Pi's audio output (the 3.5 mm jack feeding the desk) to 100%, unmuted.
+command -v wpctl >/dev/null || exit 0
+for _ in $(seq 30); do
+  if wpctl inspect @DEFAULT_AUDIO_SINK@ >/dev/null 2>&1; then
+    wpctl set-mute @DEFAULT_AUDIO_SINK@ 0
+    wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.0
+    exit 0
+  fi
+  sleep 1
+done
+EOF
+chmod +x "$BIN/touchdesk-volume"
 
 say "Adding a TouchDesk icon (desktop, menu and taskbar)"
 # So it can be restarted with a tap if it's ever closed - no keyboard or mouse needed.

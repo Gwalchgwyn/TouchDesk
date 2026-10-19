@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Removes TouchDesk. Your settings file is kept unless you pass --purge.
 set -euo pipefail
-rm -f "$HOME/.config/autostart/touchdesk.desktop" "$HOME/.local/bin/touchdesk" \
+rm -f "$HOME/.config/autostart/touchdesk.desktop" "$HOME/.local/bin/touchdesk" "$HOME/.local/bin/touchdesk-volume" \
   "$HOME/.local/share/applications/touchdesk.desktop" "$HOME/Desktop/TouchDesk.desktop" "$HOME/.local/share/icons/touchdesk.svg"
 rm -rf "$HOME/.local/share/touchdesk"
 if systemctl list-unit-files touchdesk-bt-agent.service >/dev/null 2>&1; then
