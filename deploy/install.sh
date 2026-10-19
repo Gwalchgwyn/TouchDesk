@@ -43,6 +43,14 @@ esac
 say()  { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m!!  %s\033[0m\n' "$*"; }
 
+# With SD card protection on, everything installed would vanish at the next restart.
+if [ "$(findmnt -n -o FSTYPE / 2>/dev/null)" = overlay ]; then
+  warn "SD card protection is on, so nothing installed now would survive a restart."
+  warn "Run:  bash deploy/readonly.sh off  then restart the Pi and run the installer again."
+  warn "Afterwards:  bash deploy/readonly.sh on  and restart."
+  exit 1
+fi
+
 if [ "$(id -u)" -eq 0 ]; then
   echo "Please run this as your normal user (e.g. pi), not with sudo. It will ask for your password when needed."
   exit 1

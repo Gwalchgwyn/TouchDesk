@@ -276,6 +276,21 @@ def local_addresses() -> list[str]:
     return out
 
 
+def card_status(mounts: str = "/proc/mounts") -> str:
+    """Whether the SD card is protected (root on a read-only overlay)."""
+    try:
+        with open(mounts) as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) > 2 and parts[1] == "/":
+                    if parts[2] == "overlay":
+                        return "protected (changes are undone on restart)"
+                    return "writable"
+    except OSError:
+        pass
+    return ""
+
+
 def power_status() -> str:
     """The Pi's own record of power problems since it was switched on.
 
@@ -409,6 +424,7 @@ class AdminScreen(QWidget):
         lines += [
             f"<b>This unit:</b> {', '.join(local_addresses()) or 'no network'}",
             *( [f"<b>Power:</b> {p}"] if (p := power_status()) else [] ),
+            *( [f"<b>SD card:</b> {sd}"] if (sd := card_status()) else [] ),
             f"<b>TouchDesk:</b> {__version__}",
             f"<b>Settings file:</b> {c.path or '—'}",
         ]

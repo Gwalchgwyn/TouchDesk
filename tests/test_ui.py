@@ -287,3 +287,14 @@ def test_power_status(monkeypatch, flags, expect):
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: types.SimpleNamespace(stdout=f"throttled={flags}\n"))
     result = screens.power_status()
     assert (expect in result) if expect else result == ""
+
+
+def test_card_status(tmp_path):
+    from touchdesk.ui import screens
+
+    m = tmp_path / "mounts"
+    m.write_text("overlay / overlay rw 0 0\n/dev/mmcblk0p1 /boot/firmware vfat rw 0 0\n")
+    assert "protected" in screens.card_status(str(m))
+    m.write_text("/dev/mmcblk0p2 / ext4 rw,noatime 0 0\n")
+    assert screens.card_status(str(m)) == "writable"
+    assert screens.card_status(str(tmp_path / "missing")) == ""

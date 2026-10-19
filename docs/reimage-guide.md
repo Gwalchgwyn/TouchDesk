@@ -99,6 +99,16 @@ After the restart, TouchDesk should start full screen by itself.
 - [ ] On a phone, the Pi appears in the Bluetooth list as **Green Room** / **Blue Room** and connects without a code. Music plays through channel 4 (Green) / 8 (Blue).
 - [ ] Type the **installer PIN** on the lock screen. *This unit* shows a `169.254…` address, and *Power* says **OK**.
 
+## Step 6: Protect the SD card
+
+This makes the Pi run from a read-only copy of the card. Pulling the power can then no longer damage the card, and every restart puts the Pi back exactly as it is now. Phones paired since, PIN changes made on the touchscreen and logs are all forgotten at the next restart, so **set the PINs you want first** (Step 4 asks for them).
+
+```
+ssh -t pi@touchdesk-green.local "bash TouchDesk/deploy/readonly.sh on && sudo reboot"
+```
+
+(Change `green` to `blue` for the Blue Room. Password `pi`.) After the restart, the installer settings screen shows **SD card: protected**.
+
 Done. Label the old card and keep it somewhere safe.
 
 ---
@@ -122,7 +132,18 @@ Type the **installer PIN** on the lock screen. From there you can:
 
 ## Updating TouchDesk later
 
-Download the newer `TouchDesk-offline.tgz` (or a smaller `TouchDesk-update.tgz`) into Documents, then run Step 3 and Step 4 again with that file name, but leave off `&& sudo raspi-config nonint do_vnc 0`. Settings and PINs are kept.
+The SD card protection has to be switched off while updating, or the update would vanish at the next restart.
+
+1. Switch protection off (the Pi restarts):
+   ```
+   ssh -t pi@touchdesk-green.local "bash TouchDesk/deploy/readonly.sh off && sudo reboot"
+   ```
+2. Download the newer `TouchDesk-offline.tgz` (or a smaller `TouchDesk-update.tgz`) into Documents, then run Step 3 and Step 4 again with that file name, but leave off `&& sudo raspi-config nonint do_vnc 0`. Settings and PINs are kept.
+3. Switch protection back on: Step 6.
+
+The same goes for changing PINs or other settings permanently: switch protection off, restart, make the change, then switch it back on.
+
+If the installer says *"SD card protection is on"*, do step 1 first.
 
 ## Seeing the screen from the laptop (optional)
 
@@ -135,6 +156,10 @@ The installer turns on remote screen access (VNC). Install **TigerVNC Viewer** (
 **A lightning-bolt symbol in the corner of the screen, or Power isn't "OK".** The Pi isn't getting enough power. Replace the PoE splitter or its lead first; a weak splitter has caused this before. Ideally use one rated 5 V 3 A or more.
 
 **The Pi shows a "kernel panic" or won't start.** Almost always a worn-out SD card. Make a new card with this guide.
+
+**The Pi won't start after switching protection on.** Put the card in the laptop, open the small drive called **bootfs**, open `cmdline.txt` in Notepad, delete the words `boot=overlay ` at the very start of the line (keep everything else on that one line), save, and put the card back.
+
+**A forgotten installer PIN.** With protection on, just restart the Pi: PINs go back to what they were when protection was switched on.
 
 **The installer says the bundle was made for a different Raspberry Pi OS version.** Imager has moved on to a newer Raspberry Pi OS than the offline installer was made for. Either:
 - in Imager, choose an older *Raspberry Pi OS (64-bit)* release based on Debian 13 "Trixie", if it's offered; or

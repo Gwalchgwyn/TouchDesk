@@ -77,6 +77,10 @@ Updates work the same way: copy a newer package and run the installer again. You
 
 If a future Raspberry Pi OS needs different packages, install once on a Pi with internet, then run `bash deploy/make-offline-bundle.sh` on it to collect them into `offline/`.
 
+## Protecting the SD card
+
+`bash deploy/readonly.sh on` (then restart) makes the Pi run from a read-only copy of the card, with changes kept in memory and forgotten at the next restart. Power cuts can't damage the card, and a restart always returns the unit to its installed state, including the PINs. `bash deploy/readonly.sh off` (then restart) before updating or changing settings permanently; the installer refuses to run while protection is on. Unlike `raspi-config`'s version, it needs no extra packages or internet. Installer settings show whether the card is protected.
+
 ## Networks without a router
 
 At the original venue the desk and both Pis share a plain PoE switch with no router, so nothing hands out IP addresses and every device gives itself a `169.254.x.x` ("link-local") address. That's fine:

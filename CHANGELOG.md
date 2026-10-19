@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.2 (2026-10-19)
+
+### Added
+- SD card protection (`deploy/readonly.sh on|off|status`): read-only root with changes kept in RAM. Works offline; raspi-config's version needs to download a package.
+- Installer settings show whether the SD card is protected.
+- The installer refuses to run while protection is on (the install would vanish at the next restart).
+
 ## 2.0.1 (2026-10-19)
 
 ### Fixed
