@@ -235,3 +235,20 @@ def test_long_press_reaches_installer_pin_and_can_go_back(make_window):
     assert w.stack.currentIndex() == w.ADMIN
     w.admin.closed.emit()
     assert w.stack.currentIndex() == w.MIXER
+
+
+def test_offline_banner_fits_its_text(make_window, desk, monkeypatch):
+    """Found on the real Pi: the banner kept its pre-layout size and clipped the text."""
+    from touchdesk import session as sess
+
+    monkeypatch.setattr(sess, "OFFLINE_AFTER_S", 0.5)
+    w, s = make_window({"security": {"pin_enabled": False}})
+    s._probe_timer.setInterval(150)
+    desk.silent = True
+    assert wait_until(lambda: not s.online, 3)
+    w.resize(1024, 600)
+    pump(0.2)
+    b = w.mixer.banner
+    lines = b.text().count("\n") + 1
+    assert b.height() >= lines * b.fontMetrics().height()
+    assert b.y() + b.height() <= w.mixer.height()

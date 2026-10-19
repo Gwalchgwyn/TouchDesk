@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import time
 
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import QRect, Qt, QTimer, Signal
 from PySide6.QtNetwork import QAbstractSocket, QNetworkInterface
 from PySide6.QtWidgets import (
     QGridLayout,
@@ -239,14 +239,31 @@ class MixerScreen(QWidget):
         w = self.width() * n / 8  # the strips take n/8 of the width
         bw = min(int(w) - 20, 520)
         bw = max(bw, 200)
-        self.banner.setFixedWidth(bw)
-        self.banner.setFixedHeight(self.banner.heightForWidth(bw) + 4)
+        b = self.banner
+        b.ensurePolished()
+        b.setFixedWidth(bw)
+        # Size to the wrapped text ourselves: QLabel.heightForWidth ignores the
+        # stylesheet padding, which clipped the text on the Pi's own fonts.
+        chrome = max(0, bw - b.contentsRect().width())  # padding + border, both sides
+        text_h = b.fontMetrics().boundingRect(
+            QRect(0, 0, bw - chrome, 10_000),
+            int(Qt.TextFlag.TextWordWrap) | int(Qt.AlignmentFlag.AlignCenter),
+            b.text(),
+        ).height()
+        b.setFixedHeight(text_h + chrome + 4)
         self.banner.move(int((w - self.banner.width()) / 2), int((self.height() - self.banner.height()) / 2))
         self.banner.raise_()
 
     def resizeEvent(self, e):
         super().resizeEvent(e)
-        if self.banner.isVisible():
+        # isHidden, not isVisible: before the window is shown, isVisible is
+        # always False and the banner would keep its pre-layout size.
+        if not self.banner.isHidden():
+            self._place_banner()
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        if not self.banner.isHidden():
             self._place_banner()
 
 
