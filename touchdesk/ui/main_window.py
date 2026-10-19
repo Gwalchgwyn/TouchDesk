@@ -51,7 +51,7 @@ class MainWindow(QWidget):
         # --- screens
         self.lock = LockScreen(config)
         self.mixer = MixerScreen(config, session, BluetoothPanel(bt, scale) if bt is not None else None)
-        self.admin = AdminScreen(config, session)
+        self.admin = AdminScreen(config, session, bt)
         self.stack = QStackedWidget()
         self.stack.setObjectName("Main")
         for w in (self.lock, self.mixer, self.admin):

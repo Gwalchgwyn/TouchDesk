@@ -49,6 +49,9 @@ DEFAULTS: dict = {
     },
     "bluetooth": {
         "enabled": True,
+        # Remember at most this many phones; the least recently used are
+        # forgotten automatically. 0 = no limit.
+        "max_remembered": 10,
     },
     "display": {
         # Shown in the top bar, e.g. the venue's name. Empty = "TouchDesk".

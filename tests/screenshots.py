@@ -27,6 +27,7 @@ class DemoBT(BluetoothBackend):
     has_player = True
     status = "playing"
     track = {"Title": "Calon Lân", "Artist": "Côr Meibion", "Album": "Hymns & Arias"}
+    remembered = 6
 
 
 def make_demo_art(path):

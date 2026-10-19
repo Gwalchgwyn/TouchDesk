@@ -7,6 +7,7 @@ until one appears, so Bluetooth can never stop the mixer from working.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import tempfile
@@ -20,6 +21,7 @@ log = logging.getLogger(__name__)
 
 POLL_MS = 1000
 DBUS_TIMEOUT_S = 1.0
+SEEN_FILE = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state")) / "touchdesk" / "bt-seen.json"
 
 try:  # dbus-python only exists on the Pi (python3-dbus)
     import dbus  # type: ignore
@@ -38,9 +40,14 @@ class BluetoothBackend(QObject):
     status = ""  # "playing", "paused", "stopped", ...
     track: dict = {}
     art_path = ""  # album artwork image file, "" if none
+    remembered = 0  # how many phones the Pi has paired with and remembers
 
     def start(self) -> None:
         pass
+
+    def forget_all(self) -> int:
+        """Forget every remembered phone. Returns how many were forgotten."""
+        return 0
 
     def play(self) -> None:
         pass
@@ -64,9 +71,16 @@ class BluetoothBackend(QObject):
 class BlueZBackend(BluetoothBackend):
     available = True
 
-    def __init__(self, parent: QObject | None = None):
+    def __init__(self, parent: QObject | None = None, max_remembered: int = 10, seen_file: Path = SEEN_FILE):
         super().__init__(parent)
         self.track = {}
+        # The Pi used to fill up with remembered phones until new ones couldn't
+        # pair. Keep at most this many (0 = no limit), forgetting the ones that
+        # haven't connected for the longest.
+        self.max_remembered = max_remembered
+        self._seen_file = seen_file
+        self._seen = self._load_seen()
+        self._paired: dict[str, tuple[str, str, bool]] = {}  # path -> (address, adapter, connected)
         self._bus = None
         self._player_path: str | None = None
         self._timer = QTimer(self, interval=POLL_MS)
@@ -90,8 +104,12 @@ class BlueZBackend(BluetoothBackend):
             objects = mgr.GetManagedObjects(timeout=DBUS_TIMEOUT_S)
             device_name, player_path, status, track = "", None, "", {}
             art_req = None
+            paired = {}
             for path, ifaces in objects.items():
                 dev = ifaces.get("org.bluez.Device1")
+                if dev and bool(dev.get("Paired", False)):
+                    paired[str(path)] = (str(dev.get("Address", "")), str(dev.get("Adapter", "")),
+                                         bool(dev.get("Connected", False)))
                 if dev and bool(dev.get("Connected", False)):
                     device_name = str(dev.get("Alias") or dev.get("Name") or "Device")
                 player = ifaces.get("org.bluez.MediaPlayer1")
@@ -105,6 +123,7 @@ class BlueZBackend(BluetoothBackend):
                     if port and dev_obj.get("Address"):
                         art_req = (str(dev_obj["Address"]), int(port), str(raw.get("ImgHandle", "")))
             self._art.update(art_req)
+            self._track_paired(paired)
             self._last_error = ""
         except Exception as e:  # bluetoothd not running, permissions, etc.
             msg = str(e)
@@ -114,12 +133,67 @@ class BlueZBackend(BluetoothBackend):
             self._bus = None
             device_name, player_path, status, track = "", None, "", {}
             self._art.update(None)
-        new = (device_name, player_path, status, track, self._art.path)
-        old = (self.device_name, self._player_path, self.status, self.track, self.art_path)
+        new = (device_name, player_path, status, track, self._art.path, len(self._paired))
+        old = (self.device_name, self._player_path, self.status, self.track, self.art_path, self.remembered)
         if new != old:
-            self.device_name, self._player_path, self.status, self.track, self.art_path = new
+            self.device_name, self._player_path, self.status, self.track, self.art_path, self.remembered = new
             self.has_player = player_path is not None
             self.changed.emit()
+
+    # ------------------------------------------------------------ remembered phones
+    def _load_seen(self) -> dict[str, float]:
+        try:
+            return {str(k): float(v) for k, v in json.loads(self._seen_file.read_text()).items()}
+        except (OSError, ValueError, AttributeError):
+            return {}
+
+    def _save_seen(self) -> None:
+        try:
+            self._seen_file.parent.mkdir(parents=True, exist_ok=True)
+            self._seen_file.write_text(json.dumps(self._seen))
+        except OSError as e:
+            log.debug("Couldn't save Bluetooth history: %s", e)
+
+    def _track_paired(self, paired: dict) -> None:
+        self._paired = paired
+        now, changed = time.time(), False
+        for address, _, connected in paired.values():
+            # Note when each phone was last connected (once a minute is plenty).
+            if connected and now - self._seen.get(address, 0) > 60:
+                self._seen[address] = now
+                changed = True
+        known = {a for a, _, _ in paired.values()}
+        for address in list(self._seen):
+            if address not in known:
+                del self._seen[address]
+                changed = True
+        if changed:
+            self._save_seen()
+        if self.max_remembered and len(paired) > self.max_remembered:
+            idle = [(self._seen.get(a, 0.0), p) for p, (a, _, c) in paired.items() if not c]
+            idle.sort()
+            for _, path in idle[: len(paired) - self.max_remembered]:
+                log.info("Forgetting least recently used phone %s (limit %s)", paired[path][0], self.max_remembered)
+                self._remove(path)
+
+    def _remove(self, path: str) -> bool:
+        address, adapter, _ = self._paired.get(path, ("", "", False))
+        try:
+            obj = self._get_bus().get_object("org.bluez", adapter or "/org/bluez/hci0")
+            dbus.Interface(obj, "org.bluez.Adapter1").RemoveDevice(path, timeout=3)
+        except Exception as e:
+            log.warning("Couldn't forget %s: %s", address or path, e)
+            return False
+        self._paired.pop(path, None)
+        self._seen.pop(address, None)
+        return True
+
+    def forget_all(self) -> int:
+        count = sum(self._remove(p) for p in list(self._paired))
+        self._save_seen()
+        log.info("Forgot %s remembered phone(s)", count)
+        QTimer.singleShot(300, self._poll)
+        return count
 
     def _call(self, method: str) -> None:
         if not self._player_path:
@@ -255,11 +329,11 @@ class CoverArt:
                     old.unlink(missing_ok=True)
 
 
-def create_backend(enabled: bool, parent: QObject | None = None) -> BluetoothBackend | None:
+def create_backend(enabled: bool, parent: QObject | None = None, max_remembered: int = 10) -> BluetoothBackend | None:
     """None = Bluetooth switched off in settings (panel hidden)."""
     if not enabled:
         return None
     if dbus is None:
         log.warning("python3-dbus isn't installed - Bluetooth controls disabled")
         return BluetoothBackend(parent)
-    return BlueZBackend(parent)
+    return BlueZBackend(parent, max_remembered=max_remembered)

@@ -286,10 +286,12 @@ class AdminScreen(QWidget):
 
     LOCK_CHOICES = [5, 15, 30, 60, 0]
 
-    def __init__(self, config: Config, session: DeskSession, parent=None):
+    def __init__(self, config: Config, session: DeskSession, bt: BluetoothBackend | None = None, parent=None):
         super().__init__(parent)
         self.config = config
         self.session = session
+        self.bt = bt
+        self._forget_armed = False
         self.pages = QStackedWidget()
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
@@ -337,16 +339,20 @@ class AdminScreen(QWidget):
         self.b_names = self._button("", self._toggle_names)
         self.b_pin = self._button("Change user PIN", lambda: self._change_pin("pin"))
         self.b_admin_pin = self._button("Change installer PIN", lambda: self._change_pin("admin_pin"))
+        self.b_forget = self._button("", self._forget)
         self.b_exit = self._button("Exit to desktop", self.exit_requested.emit)
         self.b_done = self._button("Done", self.closed.emit, primary=True)
 
         grid = QGridLayout()
         grid.setSpacing(8)
         buttons = [self.b_find, self.b_lock, self.b_timeout, self.b_levels, self.b_names,
-                   self.b_pin, self.b_admin_pin, self.b_exit]
+                   self.b_pin, self.b_admin_pin, self.b_forget, self.b_exit]
         for i, b in enumerate(buttons):
             grid.addWidget(b, i // 2, i % 2)
-        grid.addWidget(self.b_done, 4, 0, 1, 2)
+        grid.addWidget(self.b_done, 4, 1)
+        self.b_forget.setVisible(self.bt is not None and self.bt.available)
+        if self.bt is not None:
+            self.bt.changed.connect(self.refresh)
 
         left = QVBoxLayout()
         left.addWidget(title)
@@ -387,6 +393,31 @@ class AdminScreen(QWidget):
         self.b_timeout.setEnabled(bool(sec["pin_enabled"]))
         self.b_levels.setText("Levels shown as: " + ("dB" if c.data["level_display"] == "db" else "0–10"))
         self.b_names.setText("Names from: " + ("the desk" if c.data["use_desk_names"] else "settings"))
+        if self.bt is not None:
+            n = self.bt.remembered
+            if self._forget_armed:
+                self.b_forget.setText(f"Tap again to forget {n}")
+            else:
+                self.b_forget.setText(f"Forget phones ({n})")
+            self.b_forget.setEnabled(n > 0 or self._forget_armed)
+
+    def _forget(self) -> None:
+        """Two taps: the first asks for confirmation, the second forgets every phone."""
+        if not self._forget_armed:
+            self._forget_armed = True
+            QTimer.singleShot(5000, self._disarm_forget)
+        else:
+            self._forget_armed = False
+            n = self.bt.forget_all() if self.bt else 0
+            self.b_forget.setText(f"Forgot {n} phone{'s' if n != 1 else ''}")
+            QTimer.singleShot(2500, self.refresh)
+            return
+        self.refresh()
+
+    def _disarm_forget(self) -> None:
+        if self._forget_armed:
+            self._forget_armed = False
+            self.refresh()
 
     def _toggle_lock(self) -> None:
         self.config.security["pin_enabled"] = not self.config.security["pin_enabled"]

@@ -145,3 +145,58 @@ def test_phone_without_artwork_support_is_left_alone(monkeypatch, tmp_path):
     art.update(("AA:BB", 4101, "123"))
     assert [c[0] for c in calls] == ["CreateSession"], "don't keep retrying a phone that said no"
     assert art.path == ""
+
+
+# ---------------------------------------------------------------- remembered phones
+def make_paired_dbus(state, removed):
+    class Interface:
+        def __init__(self, obj, iface):
+            self.obj, self.iface = obj, iface
+
+        def GetManagedObjects(self, timeout=None):
+            return state["objects"]
+
+        def RemoveDevice(self, path, timeout=None):
+            removed.append(path)
+            state["objects"].pop(path, None)
+
+    return types.SimpleNamespace(SystemBus=lambda: FakeBus(state, []), Interface=Interface)
+
+
+def phone(n, connected=False):
+    return (f"/org/bluez/hci0/dev_{n}", {"org.bluez.Device1": {
+        "Address": f"AA:{n}", "Adapter": "/org/bluez/hci0", "Paired": True,
+        "Connected": connected, "Alias": f"Phone {n}"}})
+
+
+def test_remembers_at_most_the_limit_forgetting_oldest(qapp, monkeypatch, tmp_path):
+    import time as _t
+
+    state, removed = {"objects": dict([phone(1), phone(2), phone(3)])}, []
+    monkeypatch.setattr(bluetooth, "dbus", make_paired_dbus(state, removed))
+    bt = bluetooth.BlueZBackend(max_remembered=3, seen_file=tmp_path / "seen.json")
+    bt._seen = {"AA:1": _t.time() - 100, "AA:2": _t.time() - 900, "AA:3": _t.time() - 50}
+    bt._poll()
+    assert bt.remembered == 3 and removed == []
+    state["objects"].update(dict([phone(4, connected=True)]))  # a new phone pairs: 4 > limit
+    bt._poll()
+    assert removed == ["/org/bluez/hci0/dev_2"], "the least recently used phone goes"
+    assert bt.remembered == 3
+    assert "AA:4" in bt._seen, "connected phones are remembered as recently used"
+
+
+def test_never_forgets_the_connected_phone(qapp, monkeypatch, tmp_path):
+    state, removed = {"objects": dict([phone(1, connected=True), phone(2)])}, []
+    monkeypatch.setattr(bluetooth, "dbus", make_paired_dbus(state, removed))
+    bt = bluetooth.BlueZBackend(max_remembered=1, seen_file=tmp_path / "seen.json")
+    bt._poll()
+    assert removed == ["/org/bluez/hci0/dev_2"]
+
+
+def test_forget_all(qapp, monkeypatch, tmp_path):
+    state, removed = {"objects": dict([phone(1), phone(2), phone(3, connected=True)])}, []
+    monkeypatch.setattr(bluetooth, "dbus", make_paired_dbus(state, removed))
+    bt = bluetooth.BlueZBackend(seen_file=tmp_path / "seen.json")
+    bt._poll()
+    assert bt.forget_all() == 3
+    assert state["objects"] == {}

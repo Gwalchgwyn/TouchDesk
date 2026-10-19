@@ -252,3 +252,25 @@ def test_offline_banner_fits_its_text(make_window, desk, monkeypatch):
     lines = b.text().count("\n") + 1
     assert b.height() >= lines * b.fontMetrics().height()
     assert b.y() + b.height() <= w.mixer.height()
+
+
+def test_forget_phones_needs_two_taps(make_window):
+    class BT(BluetoothBackend):
+        available = True
+        remembered = 4
+        forgotten = 0
+
+        def forget_all(self):
+            BT.forgotten += 1
+            n, self.remembered = self.remembered, 0
+            return n
+
+    bt = BT()
+    w, s = make_window({"security": {"pin_enabled": False}}, bt=bt)
+    a = w.admin
+    a.refresh()
+    assert a.b_forget.text() == "Forget phones (4)"
+    a.b_forget.click()
+    assert BT.forgotten == 0 and "Tap again" in a.b_forget.text()
+    a.b_forget.click()
+    assert BT.forgotten == 1 and a.b_forget.text() == "Forgot 4 phones"

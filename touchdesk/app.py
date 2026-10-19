@@ -128,7 +128,8 @@ def main(argv: list[str] | None = None) -> int:
     scale = min(screen.width() / 800, screen.height() / 480) if screen else 1.0
 
     session = DeskSession(config)
-    bt = create_backend(bool(config.data["bluetooth"]["enabled"]))
+    bt = create_backend(bool(config.data["bluetooth"]["enabled"]),
+                        max_remembered=int(config.data["bluetooth"].get("max_remembered", 10) or 0))
     window = MainWindow(config, session, bt, scale)
     if display.get("hide_cursor", True) and fullscreen:
         app.setOverrideCursor(QCursor(Qt.CursorShape.BlankCursor))

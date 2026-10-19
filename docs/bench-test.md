@@ -59,6 +59,8 @@ Everything here has been tested in software against a stand-in desk. This list c
 - [ ] Artwork changes when the track changes
 - [ ] Start TouchDesk with **no** phone connected: it starts normally (the 1.x crash)
 - [ ] Phone walks out of range and back: no crash
+- [ ] Installer settings → "Forget phones" (tap twice): count goes to 0, phone has to re-pair
+- [ ] No "Pairing…" / "Connection successful" pop-ups over TouchDesk when a phone connects
 
 ### Kiosk behaviour
 - [ ] Reboot: TouchDesk starts full screen by itself, no cursor

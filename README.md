@@ -14,6 +14,7 @@ TouchDesk 1.x ran 24/7 at a community venue from September 2020. Version 2 keeps
 - **Finds the desk by itself.** No more hard-coded IP address. A fixed address still works if you prefer.
 - **Copes with the desk going away.** If the network drops, the screen says so and reconnects automatically.
 - **Bluetooth can't stop it starting.** 1.x crashed at start-up if no phone was connected; now the player just says "No device connected".
+- **Phones can't fill the Pi up.** It remembers at most 10 phones, forgetting the least recently used, and the installer settings have a "Forget phones" button.
 - **Album artwork** in the Bluetooth player, sent by the phone itself (no internet needed). Not every phone or app sends it; when there's none, a music-note placeholder shows.
 - **A settings file instead of editing code.** Number of channels, which desk channel each controls, names, PINs, timeouts, maximum level.
 - **Installer settings on the touchscreen,** behind a separate installer PIN: find desk, PIN lock on/off, auto-lock time, change PINs, 0–10 or dB readouts, names from the desk.
@@ -86,6 +87,7 @@ Settings live in `~/.config/touchdesk/config.json`. The common ones can be chang
 | `security.lock_after_minutes` | Lock after this long untouched. `0` = never | `15` |
 | `security.max_attempts` / `lockout_seconds` | Wrong guesses allowed, then how long the keypad pauses | `5` / `60` |
 | `bluetooth.enabled` | Show the Bluetooth player | `true` |
+| `bluetooth.max_remembered` | Phones the Pi remembers; the least recently used are forgotten automatically. `0` = no limit | `10` |
 | `display.title` | Text in the top bar, e.g. the room's name | `TouchDesk` |
 
 Each channel looks like this:
@@ -102,7 +104,7 @@ If the file has a mistake, TouchDesk shows exactly what's wrong on the screen in
 
 On the lock screen, enter the **installer PIN** instead of the user PIN. If the PIN lock is switched off, **press and hold the top bar for 3 seconds** to get the PIN pad.
 
-From there you can find and pick the desk, switch the PIN lock and auto-lock, change both PINs, choose 0–10 or dB readouts, show names from the desk, and exit to the desktop. The screen also shows the desk's model, name, address and firmware, and this unit's IP address.
+From there you can find and pick the desk, forget all remembered phones (two taps), switch the PIN lock and auto-lock, change both PINs, choose 0–10 or dB readouts, show names from the desk, and exit to the desktop. The screen also shows the desk's model, name, address and firmware, and this unit's IP address.
 
 ## Troubleshooting
 

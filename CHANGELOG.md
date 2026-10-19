@@ -23,6 +23,7 @@ Rebuilt from TouchDesk 1.1. Same look, new internals.
 - Configurable channels: choose which four desk channels a screen controls.
 - Installer room presets: Blue Room (channels 1–4) and Green Room (5–8), each with its own Bluetooth name.
 - Album artwork from the phone over Bluetooth (AVRCP 1.6 cover art via BlueZ/obexd; experimental, phone-dependent).
+- Remembered phones limited to 10 (least recently used forgotten automatically), plus "Forget phones" in installer settings. 1.x could fill up until new phones couldn't pair.
 - Installer settings screen behind a separate PIN.
 - PIN masking and lockout; Mute All available while locked.
 - Desk channel names, dB readout option, configurable maximum level.
