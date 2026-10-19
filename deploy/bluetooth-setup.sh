@@ -62,6 +62,35 @@ sudo systemctl daemon-reload
 sudo systemctl enable touchdesk-bt-agent.service
 sudo systemctl restart touchdesk-bt-agent.service
 
+say "Removing the desktop's own Bluetooth icon"
+# The taskbar's Bluetooth icon shows "Pairing..." / "Connection successful"
+# pop-ups that would appear over TouchDesk. TouchDesk's pairing service
+# handles phones itself, so the icon isn't needed on a wall unit.
+PANEL_SYS=/etc/xdg/wf-panel-pi/wf-panel-pi.ini
+PANEL_USR="$HOME/.config/wf-panel-pi/wf-panel-pi.ini"
+if [ -f "$PANEL_SYS" ]; then
+  mkdir -p "$(dirname "$PANEL_USR")"
+  python3 - "$PANEL_SYS" "$PANEL_USR" <<'PY'
+import configparser, sys
+sys_ini, usr_ini = sys.argv[1:3]
+def load(path):
+    c = configparser.ConfigParser(interpolation=None)
+    c.optionxform = str
+    c.read(path)
+    return c
+s, u = load(sys_ini), load(usr_ini)
+if not u.has_section("panel"):
+    u.add_section("panel")
+right = u.get("panel", "widgets_right", fallback=s.get("panel", "widgets_right", fallback=""))
+u.set("panel", "widgets_right", " ".join(w for w in right.split() if w != "bluetooth"))
+with open(usr_ini, "w") as f:
+    u.write(f)
+PY
+  echo "  Done (takes effect after the next reboot)."
+else
+  echo "  No taskbar settings found - skipping."
+fi
+
 say "Bluetooth ready"
 cat <<EOF
   The Pi should now appear as "$NAME" in your phone's Bluetooth list.
