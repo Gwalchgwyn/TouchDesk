@@ -100,7 +100,9 @@ EOF
       for f in "$BOOTDIR"/initramfs*; do
         [ -f "$f" ] || continue
         FOUND=1
-        if ! lsinitramfs "$f" | grep -q 'scripts/overlay$'; then
+        # (Not grep -q: it stops reading early, the decompressor then fails
+        # with "zstd failed" and pipefail turns that into a false alarm.)
+        if ! lsinitramfs "$f" | grep 'scripts/overlay$' >/dev/null; then
           warn "$f doesn't contain the read-only step - not switching protection on."
           exit 1
         fi
