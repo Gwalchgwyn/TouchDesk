@@ -29,6 +29,9 @@ else
   echo "No $CONF found - album artwork will stay off."
 fi
 
+say "Making sure Bluetooth isn't switched off"
+sudo rfkill unblock bluetooth || true
+
 say "Creating a background service that accepts pairing automatically"
 sudo tee /etc/systemd/system/touchdesk-bt-agent.service >/dev/null <<EOF
 [Unit]
@@ -37,6 +40,9 @@ After=bluetooth.service
 Requires=bluetooth.service
 
 [Service]
+# Fresh Raspberry Pi OS installs often start with Bluetooth "soft blocked",
+# which stops the controller powering on. Unblock it on every start.
+ExecStartPre=-/usr/sbin/rfkill unblock bluetooth
 ExecStartPre=/bin/sleep 2
 ExecStartPre=-/usr/bin/bluetoothctl system-alias "$NAME"
 ExecStartPre=-/usr/bin/bluetoothctl power on
@@ -46,6 +52,8 @@ ExecStartPre=-/usr/bin/bluetoothctl pairable on
 ExecStart=/usr/bin/bt-agent --capability=NoInputNoOutput
 Restart=always
 RestartSec=5
+# bt-agent is slow to exit on SIGTERM; don't make restarts wait 90 s.
+TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target
