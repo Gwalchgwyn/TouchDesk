@@ -274,3 +274,16 @@ def test_forget_phones_needs_two_taps(make_window):
     assert BT.forgotten == 0 and "Tap again" in a.b_forget.text()
     a.b_forget.click()
     assert BT.forgotten == 1 and a.b_forget.text() == "Forgot 4 phones"
+
+
+@pytest.mark.parametrize("flags,expect", [("0x0", "OK"), ("0x50000", "since power-on"), ("0x50005", "NOW"), ("", "")])
+def test_power_status(monkeypatch, flags, expect):
+    import subprocess
+    import types
+
+    from touchdesk.ui import screens
+
+    monkeypatch.setattr("shutil.which", lambda name: "/usr/bin/vcgencmd" if flags else None)
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: types.SimpleNamespace(stdout=f"throttled={flags}\n"))
+    result = screens.power_status()
+    assert (expect in result) if expect else result == ""

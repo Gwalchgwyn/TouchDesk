@@ -276,6 +276,32 @@ def local_addresses() -> list[str]:
     return out
 
 
+def power_status() -> str:
+    """The Pi's own record of power problems since it was switched on.
+
+    Uses the firmware's 'throttled' flags (vcgencmd get_throttled). Returns ""
+    when not on a Raspberry Pi.
+    """
+    import shutil
+    import subprocess
+
+    exe = shutil.which("vcgencmd")
+    if not exe:
+        return ""
+    try:
+        out = subprocess.run([exe, "get_throttled"], capture_output=True, text=True, timeout=2).stdout
+        flags = int(out.strip().split("=")[-1], 16)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return ""
+    if flags & 0x1:
+        return "<span style='color:#ff4d4d'>LOW VOLTAGE NOW - check the power supply</span>"
+    if flags & 0x10000:
+        return "<span style='color:#f0a020'>Low voltage detected since power-on</span>"
+    if flags & 0x40004:
+        return "<span style='color:#f0a020'>Slowed down by heat or power since power-on</span>"
+    return "OK"
+
+
 class AdminScreen(QWidget):
     """Installer settings, reached with the admin PIN."""
 
@@ -382,6 +408,7 @@ class AdminScreen(QWidget):
             lines.append(f"<b>Desk firmware:</b> {info['firmware']}")
         lines += [
             f"<b>This unit:</b> {', '.join(local_addresses()) or 'no network'}",
+            *( [f"<b>Power:</b> {p}"] if (p := power_status()) else [] ),
             f"<b>TouchDesk:</b> {__version__}",
             f"<b>Settings file:</b> {c.path or '—'}",
         ]

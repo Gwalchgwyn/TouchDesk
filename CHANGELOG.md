@@ -24,7 +24,7 @@ Rebuilt from TouchDesk 1.1. Same look, new internals.
 - Installer room presets: Green Room / Room 1 (channels 1–4) and Blue Room / Room 2 (5–8), each with its own Bluetooth name.
 - Album artwork from the phone over Bluetooth (AVRCP 1.6 cover art via BlueZ/obexd; experimental, phone-dependent).
 - Remembered phones limited to 10 (least recently used forgotten automatically), plus "Forget phones" in installer settings. 1.x could fill up until new phones couldn't pair.
-- Installer settings screen behind a separate PIN.
+- Installer settings screen behind a separate PIN, showing desk, network and power health (the Pi's low-voltage record since power-on).
 - PIN masking and lockout; Mute All available while locked.
 - Desk channel names, dB readout option, configurable maximum level.
 - X32 / M32 profile (untested).
