@@ -1,8 +1,8 @@
 # Changelog
 
-## 2.0.0 (in development)
+## 2.0.0 (2026-10-19)
 
-Rebuilt from TouchDesk 1.1. Same look, new internals.
+Rebuilt from TouchDesk 1.1. Same look, new internals. Installed and tested at the original venue on both rooms (XR12, firmware 1.09).
 
 ### Fixed (bugs in 1.1)
 - Crashed at start-up when no Bluetooth device was connected (likely why a cloned SD card wouldn't run on a replacement Pi: new Pi, new Bluetooth address, phone not paired).
@@ -30,6 +30,8 @@ Rebuilt from TouchDesk 1.1. Same look, new internals.
 - X32 / M32 profile (untested).
 - Fully offline install: packages bundled in `offline/`, no internet or `apt-get update` needed; already-installed packages skipped on upgrades. `deploy/make-offline-bundle.sh` collects packages from a working Pi.
 - Desktop icon, menu entry and taskbar button to start TouchDesk; launcher refuses to start a second copy.
+- The Pi's audio output is set to 100% each time TouchDesk starts (Raspberry Pi OS defaults to about 40%).
+- Step-by-step re-imaging guide (`docs/reimage-guide.md`).
 - Installer script, crash-restart launcher, Bluetooth pairing agent service.
 - Automated tests and a small stand-in desk for development.
 

@@ -23,6 +23,7 @@ TouchDesk 1.x ran 24/7 at a community venue from September 2020. Version 2 keeps
 - **Choose which four desk channels a screen controls,** so one desk can serve several rooms, each with its own screen, Bluetooth name and Mute All.
 - **Desk profiles.** Behringer X Air (XR12/XR16/XR18) and Midas MR. Behringer X32 / Midas M32 is included but untested.
 - **A TouchDesk icon on the desktop and taskbar**, so it can be restarted with one tap if it's ever closed. Only one copy can run at a time.
+- **The Pi's audio output is set to 100% at every start,** so Bluetooth audio reaches the desk at a consistent level.
 - **One-command install** on a fresh Raspberry Pi OS, with auto-start and automatic restart if anything goes wrong.
 - **Modern Qt (PySide6)** and an automated test suite.
 
@@ -35,7 +36,9 @@ TouchDesk 1.x ran 24/7 at a community venue from September 2020. Version 2 keeps
 
 ## Installing
 
-On the Pi, in a terminal:
+**Rebuilding a unit at the venue?** Follow the step-by-step **[re-imaging guide](docs/reimage-guide.md)**. It needs no internet at the venue and no programming knowledge.
+
+On a Pi with internet, in a terminal:
 
 ```bash
 git clone https://github.com/Gwalchgwyn/TouchDesk.git
@@ -62,11 +65,13 @@ To remove it: `bash deploy/uninstall.sh`
 
 ## Installing without internet
 
-TouchDesk Pis are meant to be set-and-forget and never need the internet. The **offline installer** (`TouchDesk-offline.tgz`) contains TouchDesk plus every package it needs for 64-bit Raspberry Pi OS 13 ("trixie") in its `offline/` folder, so the install runs with no network access at all:
+TouchDesk Pis are meant to be set-and-forget and never need the internet. The **offline installer** (`TouchDesk-offline.tgz`, attached to each [release](https://github.com/Gwalchgwyn/touchdesk/releases)) contains TouchDesk plus every package it needs for 64-bit Raspberry Pi OS 13 ("trixie") in its `offline/` folder, so the install runs with no network access at all:
 
 1. Flash the card with Raspberry Pi Imager (64-bit Raspberry Pi OS, SSH on, no Wi-Fi needed).
 2. Copy the offline installer to the Pi (USB stick, or `scp` over the venue network).
 3. `tar xzf TouchDesk-offline.tgz && cd TouchDesk && bash deploy/install.sh --room green --bluetooth`
+
+The [re-imaging guide](docs/reimage-guide.md) walks through this in full from a Windows laptop.
 
 Updates work the same way: copy a newer package and run the installer again. Your settings are kept, and packages that are already installed are skipped.
 
