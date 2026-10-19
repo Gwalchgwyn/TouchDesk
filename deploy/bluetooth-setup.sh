@@ -13,8 +13,14 @@ NAME="${1:-TouchDesk}"
 
 say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 
-say "Installing Bluetooth tools"
-sudo apt-get install -y -q bluez bluez-tools bluez-obexd
+say "Checking Bluetooth tools"
+# Installed by install.sh (from the offline bundle). Only download as a last resort.
+for p in bluez bluez-tools bluez-obexd; do
+  if ! dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q "install ok installed"; then
+    echo "  $p missing - trying to download it"
+    sudo apt-get install -y -q "$p"
+  fi
+done
 
 say "Turning on BlueZ experimental features (needed for album artwork)"
 CONF=/etc/bluetooth/main.conf

@@ -28,6 +28,7 @@ Rebuilt from TouchDesk 1.1. Same look, new internals.
 - PIN masking and lockout; Mute All available while locked.
 - Desk channel names, dB readout option, configurable maximum level.
 - X32 / M32 profile (untested).
+- Fully offline install: packages bundled in `offline/`, no internet or `apt-get update` needed; already-installed packages skipped on upgrades. `deploy/make-offline-bundle.sh` collects packages from a working Pi.
 - Installer script, crash-restart launcher, Bluetooth pairing agent service.
 - Automated tests and a small stand-in desk for development.
 

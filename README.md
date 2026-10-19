@@ -59,6 +59,18 @@ To try it in a window first: `~/.local/bin/touchdesk --windowed`
 
 To remove it: `bash deploy/uninstall.sh`
 
+## Installing without internet
+
+TouchDesk Pis are meant to be set-and-forget and never need the internet. The **offline installer** (`TouchDesk-offline.tgz`) contains TouchDesk plus every package it needs for 64-bit Raspberry Pi OS 13 ("trixie") in its `offline/` folder, so the install runs with no network access at all:
+
+1. Flash the card with Raspberry Pi Imager (64-bit Raspberry Pi OS, SSH on, no Wi-Fi needed).
+2. Copy the offline installer to the Pi (USB stick, or `scp` over the venue network).
+3. `tar xzf TouchDesk-offline.tgz && cd TouchDesk && bash deploy/install.sh --room green --bluetooth`
+
+Updates work the same way: copy a newer package and run the installer again. Your settings are kept, and packages that are already installed are skipped.
+
+If a future Raspberry Pi OS needs different packages, install once on a Pi with internet, then run `bash deploy/make-offline-bundle.sh` on it to collect them into `offline/`.
+
 ## Networks without a router
 
 At the original venue the desk and both Pis share a plain PoE switch with no router, so nothing hands out IP addresses and every device gives itself a `169.254.x.x` ("link-local") address. That's fine:

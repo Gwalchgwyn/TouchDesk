@@ -48,15 +48,40 @@ if [ "$(id -u)" -eq 0 ]; then
   exit 1
 fi
 
-say "Installing system packages (needs your password)"
-sudo apt-get update -q
-sudo apt-get install -y -q python3 python3-venv python3-pip python3-dbus fonts-crosextra-carlito
-# Qt for Python from the OS if it's packaged (Raspberry Pi OS based on Debian 13 "trixie" or later).
-QT_PKGS="python3-pyside6.qtcore python3-pyside6.qtgui python3-pyside6.qtwidgets python3-pyside6.qtnetwork"
-if sudo apt-get install -y -q $QT_PKGS; then
-  echo "Using the system's PySide6."
+# Everything TouchDesk needs from the OS. The Pis are meant to be offline,
+# so these normally come from the bundled offline/ folder, not the internet.
+NEEDED_PKGS="python3 python3-venv python3-dbus fonts-crosextra-carlito bluez bluez-tools bluez-obexd \
+python3-pyside6.qtcore python3-pyside6.qtgui python3-pyside6.qtwidgets python3-pyside6.qtnetwork"
+OFFLINE="$SRC/offline"
+missing_pkgs() {
+  local p out=""
+  for p in $NEEDED_PKGS; do
+    dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q "install ok installed" || out="$out $p"
+  done
+  echo "$out"
+}
+
+say "System packages"
+MISSING="$(missing_pkgs)"
+if [ -z "$MISSING" ]; then
+  echo "Already installed - nothing to do."
+elif ls "$OFFLINE"/debs/*.deb >/dev/null 2>&1; then
+  echo "Installing from the offline bundle (no internet needed):$MISSING"
+  # dpkg installs exactly these files; apt isn't asked to download anything.
+  sudo dpkg -i --skip-same-version "$OFFLINE"/debs/*.deb
+  MISSING="$(missing_pkgs)"
+  if [ -n "$MISSING" ]; then
+    warn "Still missing after the offline install:$MISSING"
+    warn "This bundle was made for a different Raspberry Pi OS version. Run deploy/make-offline-bundle.sh on a working Pi with the same OS."
+    exit 1
+  fi
 else
-  warn "PySide6 isn't available from apt on this OS version - will try pip instead."
+  echo "Downloading:$MISSING"
+  if ! sudo apt-get update -q || ! sudo apt-get install -y -q $MISSING; then
+    warn "Couldn't download the packages above. TouchDesk Pis are usually offline -"
+    warn "use the offline installer package (with an offline/ folder) instead."
+    exit 1
+  fi
 fi
 
 say "Copying TouchDesk to $APP"
@@ -73,13 +98,14 @@ say "Setting up Python environment"
 if [ ! -x "$VENV/bin/python" ]; then
   python3 -m venv --system-site-packages "$VENV"
 fi
-"$VENV/bin/pip" install -q --upgrade "python-osc>=1.8"
+if ls "$OFFLINE"/wheels/*.whl >/dev/null 2>&1; then
+  "$VENV/bin/pip" install -q --no-index --find-links "$OFFLINE/wheels" --upgrade "python-osc>=1.8"
+elif ! "$VENV/bin/python" -c "import pythonosc" 2>/dev/null; then
+  "$VENV/bin/pip" install -q --upgrade "python-osc>=1.8"
+fi
 if ! "$VENV/bin/python" -c "import PySide6.QtWidgets, PySide6.QtNetwork" 2>/dev/null; then
-  echo "Installing PySide6 with pip (this can take a while)..."
-  if ! "$VENV/bin/pip" install -q "PySide6-Essentials>=6.5"; then
-    warn "Couldn't install PySide6. Make sure you're on the 64-bit Raspberry Pi OS."
-    exit 1
-  fi
+  warn "Qt for Python (PySide6) isn't working. Make sure this is the 64-bit Raspberry Pi OS (Debian 13 or later)."
+  exit 1
 fi
 "$VENV/bin/python" -c "import PySide6, pythonosc; print('PySide6', PySide6.__version__)"
 
