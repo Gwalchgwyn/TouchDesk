@@ -17,7 +17,7 @@ If you just want to get a room working again quickly and still have the **old ca
 
 1. Install **Raspberry Pi Imager** on the laptop: <https://www.raspberrypi.com/software/>
 2. Download the **offline installer** from the latest TouchDesk release: <https://github.com/Gwalchgwyn/touchdesk/releases/latest>
-   It's the file named like `TouchDesk-offline-2.0.1.tgz` under *Assets*. Save it in your **Documents** folder and **rename it to `TouchDesk-offline.tgz`** so the commands below work as written. Don't unzip it.
+   It's the file named like `TouchDesk-offline-2.0.2.tgz` under *Assets*. Save it in your **Documents** folder and **rename it to `TouchDesk-offline.tgz`** so the commands below work as written. Don't unzip it.
 
 That's everything that needs the internet. The Pis never go online.
 
