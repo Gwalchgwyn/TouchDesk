@@ -19,12 +19,16 @@ sudo apt-get install -y -q bluez bluez-tools bluez-obexd
 say "Turning on BlueZ experimental features (needed for album artwork)"
 CONF=/etc/bluetooth/main.conf
 if [ -f "$CONF" ]; then
+  BEFORE="$(md5sum < "$CONF")"
   if grep -qE '^[#[:space:]]*Experimental[[:space:]]*=' "$CONF"; then
     sudo sed -i -E 's/^[#[:space:]]*Experimental[[:space:]]*=.*/Experimental = true/' "$CONF"
   else
     sudo sed -i '/^\[General\]/a Experimental = true' "$CONF"
   fi
-  sudo systemctl restart bluetooth
+  # Only restart Bluetooth if the setting actually changed (re-runs skip this).
+  if [ "$(md5sum < "$CONF")" != "$BEFORE" ]; then
+    sudo systemctl restart bluetooth
+  fi
 else
   echo "No $CONF found - album artwork will stay off."
 fi
