@@ -39,7 +39,7 @@ On the Pi, in a terminal:
 ```bash
 git clone https://github.com/Gwalchgwyn/TouchDesk.git
 cd TouchDesk
-bash deploy/install.sh --room blue --bluetooth     # leave off --bluetooth if you don't need it
+bash deploy/install.sh --room green --bluetooth    # leave off --bluetooth if you don't need it
 ```
 
 ### Rooms
@@ -48,8 +48,8 @@ One XR12 can serve two rooms, each with its own TouchDesk screen:
 
 | Room | Option | Desk channels | Shows on phones as |
 |---|---|---|---|
-| Blue Room | `--room blue` | 1–4 | Blue Room |
-| Green Room | `--room green` | 5–8 | Green Room |
+| Green Room (Room 1) | `--room green` | 1–4 (Aux 1) | Green Room |
+| Blue Room (Room 2) | `--room blue` | 5–8 (Aux 2) | Blue Room |
 
 In each room, inputs #1–#3 are the wall sockets and the fourth channel is the Pi's own Bluetooth audio (from its 3.5 mm jack, through a passive balancer, down the spare pair of the Cat5 to the desk). Mute All on each screen only mutes that room's channels. Leave out `--room` and the installer asks; choose "neither" to set channels up yourself in the settings file.
 

@@ -214,13 +214,13 @@ def test_bluetooth_backend_off_when_disabled():
     assert create_backend(False) is None
 
 
-def test_green_room_controls_channels_5_to_8(make_window, desk):
+def test_blue_room_controls_channels_5_to_8(make_window, desk):
     chans = [{"label": f"#{i}", "type": "ch", "number": 4 + i} for i in range(1, 5)]
-    w, s = make_window({"channels": chans, "display": {"title": "Green Room"},
+    w, s = make_window({"channels": chans, "display": {"title": "Blue Room"},
                         "security": {"pin_enabled": False}})
     w.mixer.strips[0].fader.setValue(500)
     assert wait_until(lambda: desk.state["/ch/05/mix/fader"] == pytest.approx(0.375))
-    assert desk.state["/ch/01/mix/fader"] == 0.75, "Blue Room's channels untouched"
+    assert desk.state["/ch/01/mix/fader"] == 0.75, "Green Room's channels untouched"
     QTest.mouseClick(w.b_muteall, Qt.MouseButton.LeftButton)
     assert wait_until(lambda: all(desk.state[f"/ch/0{n}/mix/on"] == 0 for n in range(5, 9)))
     assert all(desk.state[f"/ch/0{n}/mix/on"] == 1 for n in range(1, 5)), "Mute All stays in its own room"

@@ -97,11 +97,11 @@ def main(out):
     class NoArtBT(DemoBT):
         art_path = ""
 
-    win, s = make({"level_display": "db", "display": {"title": "Green Room"},
+    win, s = make({"level_display": "db", "display": {"title": "Blue Room"},
                    "channels": [{"label": f"#{i}", "type": "ch", "number": 4 + i,
                                  **({"icon": "bluetooth"} if i == 4 else {})} for i in range(1, 5)],
                    "security": {"pin_enabled": False}}, bt=NoArtBT())
-    shoot(win, out, "3-green-room-db-no-artwork")
+    shoot(win, out, "3-blue-room-db-no-artwork")
     s.stop(); win.close()
 
     desk.silent = True

@@ -21,7 +21,7 @@ Rebuilt from TouchDesk 1.1. Same look, new internals.
 - Installer configures the Pi's wired connection to fall back to a 169.254.x.x address when there's no DHCP server (NetworkManager doesn't by default).
 - Settings file with validation and on-screen error reporting.
 - Configurable channels: choose which four desk channels a screen controls.
-- Installer room presets: Blue Room (channels 1–4) and Green Room (5–8), each with its own Bluetooth name.
+- Installer room presets: Green Room / Room 1 (channels 1–4) and Blue Room / Room 2 (5–8), each with its own Bluetooth name.
 - Album artwork from the phone over Bluetooth (AVRCP 1.6 cover art via BlueZ/obexd; experimental, phone-dependent).
 - Remembered phones limited to 10 (least recently used forgotten automatically), plus "Forget phones" in installer settings. 1.x could fill up until new phones couldn't pair.
 - Installer settings screen behind a separate PIN.

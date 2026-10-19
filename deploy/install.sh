@@ -3,10 +3,10 @@
 #
 # Run it as the normal desktop user (not root), from the TouchDesk folder:
 #     bash deploy/install.sh                           # install or upgrade
-#     bash deploy/install.sh --room blue --bluetooth   # Blue Room unit: channels 1-4
-#     bash deploy/install.sh --room green --bluetooth  # Green Room unit: channels 5-8
+#     bash deploy/install.sh --room green --bluetooth  # Green Room (Room 1): channels 1-4
+#     bash deploy/install.sh --room blue --bluetooth   # Blue Room (Room 2): channels 5-8
 #
-#   --room blue|green   set the room name (top bar + Bluetooth name) and its channels
+#   --room green|blue   set the room name (top bar + Bluetooth name) and its channels
 #   --bluetooth         also set the Pi up as a Bluetooth speaker
 #   --no-network        leave the Pi's network settings alone
 #
@@ -92,11 +92,11 @@ else
   echo "Created $CONF"
   if [ -z "$ROOM" ] && [ -t 0 ]; then
     echo "Which room is this unit for?"
-    echo "  1) Blue Room  (desk channels 1-4)"
-    echo "  2) Green Room (desk channels 5-8)"
+    echo "  1) Green Room (Room 1, desk channels 1-4)"
+    echo "  2) Blue Room  (Room 2, desk channels 5-8)"
     echo "  3) Neither - I'll edit the settings file myself"
     read -r -p "Choose 1, 2 or 3 [3]: " CHOICE || true
-    case "${CHOICE:-3}" in 1) ROOM=blue ;; 2) ROOM=green ;; esac
+    case "${CHOICE:-3}" in 1) ROOM=green ;; 2) ROOM=blue ;; esac
   fi
   if [ -t 0 ]; then
     read -r -p "User PIN for the touchscreen [1234]: " PIN || true
@@ -117,7 +117,7 @@ if [ -n "$ROOM" ]; then
   "$VENV/bin/python" - "$CONF" "$ROOM" <<'PY'
 import json, sys
 path, room = sys.argv[1:3]
-title, first = {"blue": ("Blue Room", 1), "green": ("Green Room", 5)}[room]
+title, first = {"green": ("Green Room", 1), "blue": ("Blue Room", 5)}[room]
 with open(path) as f:
     c = json.load(f)
 c.setdefault("display", {})["title"] = title
